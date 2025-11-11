@@ -8,12 +8,6 @@ const NotebookCard = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
           <div className="relative text-center space-y-2">
             <div className="text-6xl mb-4">📚</div>
-            <div className="space-y-1 text-sm text-gray-800 font-medium">
-              <p>Bioteknologian ja</p>
-              <p>geenitekniikan</p>
-              <p>perusteet</p>
-              <p className="text-xs mt-2">Kirjoita tähän muistiinpanosi</p>
-            </div>
           </div>
         </div>
       </CardContent>

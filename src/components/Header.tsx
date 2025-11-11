@@ -11,9 +11,6 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-primary/20 cosmic-glow">
-              <BookOpen className="h-6 w-6 text-primary" />
-            </div>
             <span className="text-2xl font-bold text-glow">STUDYFLOW</span>
           </Link>
           

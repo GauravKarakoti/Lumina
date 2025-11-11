@@ -34,9 +34,8 @@ const StudyPanel = () => {
           >
             <X className="w-4 h-4" />
           </Button>
-          <p className="text-sm italic text-gray-800 font-medium">
-            Don't forget to review<br />
-            Punnett Squares!
+          <p className="text-sm italic text-white-800 font-medium">
+            Don't forget to review!!
           </p>
         </CardContent>
       </Card>
