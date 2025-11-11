@@ -1,11 +1,7 @@
-import { BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 backdrop-blur-lg bg-background/80">
       <div className="container mx-auto px-4 py-4">
@@ -13,24 +9,6 @@ const Header = () => {
           <Link to="/" className="flex items-center gap-2">
             <span className="text-2xl font-bold text-glow">STUDYFLOW</span>
           </Link>
-          
-          <nav className="hidden md:flex items-center gap-8">
-            <Link 
-              to="/dashboard" 
-              className="text-foreground/80 hover:text-foreground transition-colors"
-            >
-              Dashboard
-            </Link>
-            <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
-              Notes
-            </a>
-            <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
-              Flashcards
-            </a>
-            <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
-              Profile
-            </a>
-          </nav>
           
           <Button className="cosmic-glow hover-glow">
             Login

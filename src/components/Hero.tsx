@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/cosmic-hero.jpg";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -28,9 +29,11 @@ const Hero = () => {
               Transform the way you learn with AI-powered tools.
             </p>
             
-            <Button size="lg" className="cosmic-glow hover-glow text-lg px-8 py-6">
-              Start Taking Notes Free
-            </Button>
+            <Link to="/dashboard">
+              <Button size="lg" className="cosmic-glow hover-glow text-lg mx-8 my-6">
+                Start Taking Notes Free
+              </Button>
+            </Link>
           </div>
           
           <div className="relative animate-scale-in">
