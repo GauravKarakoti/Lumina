@@ -6,8 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import SelectBranch from "./pages/SelectBranch"; // Import new page
-import SelectSemester from "./pages/SelectSemester"; // Import new page
+import SelectCourse from "./pages/SelectCourse"; // Import new page
+import SelectBranch from "./pages/SelectBranch";
+import SelectSemester from "./pages/SelectSemester";
 
 const queryClient = new QueryClient();
 
@@ -19,17 +20,18 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/select-branch" element={<SelectBranch />} />
+          <Route path="/select-course" element={<SelectCourse />} />
+          <Route path="/select-branch/:courseId" element={<SelectBranch />} />
           <Route
-            path="/select-semester/:branchId"
+            path="/select-semester/:courseId/:branchId"
             element={<SelectSemester />}
           />
           <Route
-            path="/dashboard/:branchId/:semesterId"
+            path="/dashboard/:courseId/:branchId/:semesterId"
             element={<Dashboard />}
           />
-          {/* Keep the old /dashboard route to redirect or handle, or remove if not needed */}
-          <Route path="/dashboard" element={<SelectBranch />} />
+          {/* Keep the old /dashboard route to redirect to the new flow */}
+          <Route path="/dashboard" element={<SelectCourse />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

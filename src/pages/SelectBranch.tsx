@@ -1,12 +1,14 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { getBranches } from "@/lib/data";
+import { Link, useParams } from "react-router-dom";
+import { getBranches, getCourse } from "@/lib/data";
 import Header from "@/components/Header";
 import { ChevronRight } from "lucide-react";
 
 const SelectBranch = () => {
-  const branches = getBranches();
+  const { courseId } = useParams<{ courseId: string }>();
+  const course = getCourse(courseId!);
+  const branches = getBranches(courseId!);
 
   return (
     <div className="min-h-screen relative pt-16">
@@ -15,8 +17,11 @@ const SelectBranch = () => {
         <Card className="cosmic-card border-cosmic-accent/20">
           <CardHeader>
             <CardTitle className="text-2xl text-cosmic-glow text-center">
-              Choose Your Branch
+              {course?.name || "Select Branch"}
             </CardTitle>
+            <p className="text-center text-muted-foreground">
+              Choose Your Branch
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             {branches.map((branch) => (
@@ -27,7 +32,7 @@ const SelectBranch = () => {
                 className="w-full justify-between h-14 text-lg hover-glow"
                 size="lg"
               >
-                <Link to={`/select-semester/${branch.id}`}>
+                <Link to={`/select-semester/${courseId}/${branch.id}`}>
                   {branch.name}
                   <ChevronRight className="w-5 h-5" />
                 </Link>
