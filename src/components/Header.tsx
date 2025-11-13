@@ -7,6 +7,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
+            <img src="/Logo.PNG" alt="Logo" className="h-16 w-auto" />
             <span className="text-2xl font-bold text-glow">STUDYFLOW</span>
           </Link>
           

@@ -8,7 +8,18 @@ import { ChevronRight } from "lucide-react";
 const SelectSemester = () => {
   const { courseId, branchId } = useParams<{ courseId: string; branchId: string }>();
   const branch = getBranch(branchId!);
-  const semesters = getSemesters();
+  const allSemesters = getSemesters();
+
+  // Filter semesters based on the branchId
+  const semesters = allSemesters.filter(semester => {
+    if (branchId === "as") {
+      // For Applied Science, only show Sem 1 and 2
+      return semester.id === "sem1" || semester.id === "sem2";
+    } else {
+      // For all other branches, show Sem 3-7
+      return !["sem1", "sem2"].includes(semester.id);
+    }
+  });
 
   return (
     <div className="min-h-screen relative pt-16">
