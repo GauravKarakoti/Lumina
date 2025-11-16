@@ -23,22 +23,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+const getStoredUser = (): AuthUser | null => {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    try {
+      // Try to parse the stored user
+      return JSON.parse(storedUser) as AuthUser;
+    } catch (e) {
+      // If parsing fails, remove the invalid item
+      console.error("Failed to parse user from localStorage", e);
+      localStorage.removeItem('user');
+      return null;
+    }
+  }
+  return null;
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(null)
+  // Initialize user state directly from localStorage
+  const [user, setUser] = useState<AuthUser | null>(getStoredUser())
+  
+  // Initialize token state directly from localStorage
   const [token, setToken] = useState<string | null>(
     localStorage.getItem('token')
   )
-
-  useEffect(() => {
-    // On load, check local storage for user and token
-    const storedToken = localStorage.getItem('token')
-    const storedUser = localStorage.getItem('user')
-
-    if (storedToken && storedUser) {
-      setToken(storedToken)
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
 
   const login = (newToken: string, newUser: AuthUser) => {
     localStorage.setItem('token', newToken)
