@@ -1,19 +1,10 @@
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception thrown:', error);
-  process.exit(1);
-});
-
 import express from 'express'
 import cors from 'cors'
 import "dotenv/config"
-import authRoutes from './routes/auth.ts'
-import apiRoutes from './routes/api.ts'
-import adminRoutes from './routes/admin.ts'
-import { checkAdmin, checkAuth } from './middleware/checkAuth.ts'
+import authRoutes from './routes/auth.js'
+import apiRoutes from './routes/api.js'
+import adminRoutes from './routes/admin.js'
+import { checkAdmin, checkAuth } from './middleware/checkAuth.js'
 
 const app = express()
 const port = process.env.PORT || 3001
