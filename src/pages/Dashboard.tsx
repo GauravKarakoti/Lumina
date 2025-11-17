@@ -2,10 +2,16 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/dashboard/Sidebar";
 import NotebookCard from "@/components/dashboard/NotebookCard";
 import TopicList from "@/components/dashboard/TopicList";
-import StudyPanel from "@/components/dashboard/StudyPanel";
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import NoteViewer from "@/components/dashboard/NoteViewer"; // Import the new component
 
 const Dashboard = () => {
   const { courseId, branchId, semesterId } = useParams<{
@@ -15,6 +21,7 @@ const Dashboard = () => {
   }>();
   const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
+  const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false); // State for dialog
 
   if (!courseId || !branchId || !semesterId) {
     return (
@@ -30,7 +37,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen relative pt-16">
+    <div className="min-h-screen relative pt-20">
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -42,13 +49,14 @@ const Dashboard = () => {
               activeSubjectId={selectedSubjectId}
               onSubjectSelect={(id) => {
                 setSelectedSubjectId(id);
-                setSelectedTopicId(null); // Reset topic when subject changes
+                setSelectedTopicId(null); // Reset topic
+                setIsNoteViewerOpen(false); // Close dialog if subject changes
               }}
             />
           </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-6 space-y-6">
+          {/* Main Content - now wider */}
+          <div className="lg:col-span-9 space-y-6">
             <NotebookCard
               courseId={courseId}
               branchId={branchId}
@@ -57,15 +65,34 @@ const Dashboard = () => {
             <TopicList
               subjectId={selectedSubjectId}
               activeTopicId={selectedTopicId}
-              onTopicSelect={setSelectedTopicId}
+              onTopicSelect={(id) => {
+                setSelectedTopicId(id);
+                setIsNoteViewerOpen(true); // Open the dialog
+              }}
             />
           </div>
 
-          {/* Right Panel */}
-          <div className="lg:col-span-3">
-            <StudyPanel topicId={selectedTopicId} />
-          </div>
+          {/* Right Panel - Removed */}
         </div>
+
+        {/* --- PDF Viewer Dialog --- */}
+        <Dialog open={isNoteViewerOpen} onOpenChange={setIsNoteViewerOpen}>
+          <DialogContent
+            className="max-w-4xl h-[90vh] flex flex-col"
+            onPointerDownOutside={(e) => {
+              e.preventDefault(); // Prevent closing on outside click
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Study Notes</DialogTitle>
+              {/* The "X" close button is part of DialogContent */}
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto pr-4">
+              {/* Render NoteViewer only when a topic is selected */}
+              {selectedTopicId && <NoteViewer topicId={selectedTopicId} />}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
