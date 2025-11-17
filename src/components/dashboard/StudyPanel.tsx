@@ -9,14 +9,12 @@ import { useQuery } from "@tanstack/react-query"
 import axios from "axios"
 import { Separator } from "@/components/ui/separator"
 import { useState } from "react" // +++ Import useState
-
-// +++ Import react-pdf +++
+import pdfWorker from "pdfjs-dist/build/pdf.worker?url";
 import { Document, Page, pdfjs } from "react-pdf"
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// +++ Setup PDF.js worker (points to a public CDN) +++
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 
 // --- Updated Note type ---
@@ -54,6 +52,7 @@ const PdfViewer = ({ title, url }: { title: string; url: string }) => {
 
   // Construct the full URL to the PDF file on the backend
   const fullPdfUrl = `${import.meta.env.VITE_BACKEND_URL}${url}`
+  console.log("Loading PDF from URL:", fullPdfUrl)
 
   return (
     <article className="prose dark:prose-invert max-w-none">
