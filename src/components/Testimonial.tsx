@@ -19,8 +19,8 @@ const Testimonial = () => {
             </blockquote>
             
             <div className="pt-4">
-              <p className="font-semibold text-primary">— Sarah Johnson</p>
-              <p className="text-sm text-foreground/60">Medical Student</p>
+              <p className="font-semibold text-primary">— Gaurav Karakoti</p>
+              <p className="text-sm text-foreground/60">BTech Student</p>
             </div>
           </div>
         </Card>
