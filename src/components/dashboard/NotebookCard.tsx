@@ -29,7 +29,7 @@ const NotebookCard = ({
       </CardHeader>
       <CardContent>
         <p className="text-muted-foreground">
-          Welcome! Select a subject from the left to view its topics.
+          Welcome! Select a subject to view its topics.
         </p>
       </CardContent>
     </Card>

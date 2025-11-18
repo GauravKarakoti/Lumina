@@ -3,7 +3,7 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import NotebookCard from "@/components/dashboard/NotebookCard";
 import TopicList from "@/components/dashboard/TopicList";
 import { useParams } from "react-router-dom";
-import { useState, useRef } from "react"; // Added useRef
+import { useState, useRef } from "react"; 
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -44,37 +44,55 @@ const Dashboard = () => {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-3">
-            <Sidebar
-              branchId={branchId}
-              semesterId={semesterId}
-              activeSubjectId={selectedSubjectId}
-              onSubjectSelect={(id) => {
-                setSelectedSubjectId(id);
-                setSelectedTopicId(null); 
-                setIsNoteViewerOpen(false);
-                
-                // Auto-scroll to topic list on mobile
-                setTimeout(() => {
-                  topicListRef.current?.scrollIntoView({ 
-                    behavior: 'smooth',
-                    block: 'start'
-                  });
-                }, 100);
-              }}
-            />
+          
+          {/* Sidebar Section 
+            - Mobile: display:contents unwraps the child so it participates in the main grid.
+            - Desktop: lg:block restores the wrapper for the 3-column layout.
+          */}
+          <div className="contents lg:block lg:col-span-3">
+            {/* Mobile Order 2: Sidebar appears second */}
+            <div className="order-2 lg:order-none h-full">
+              <Sidebar
+                branchId={branchId}
+                semesterId={semesterId}
+                activeSubjectId={selectedSubjectId}
+                onSubjectSelect={(id) => {
+                  setSelectedSubjectId(id);
+                  setSelectedTopicId(null); 
+                  setIsNoteViewerOpen(false);
+                  
+                  // Auto-scroll to topic list on mobile
+                  setTimeout(() => {
+                    topicListRef.current?.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }, 100);
+                }}
+              />
+            </div>
           </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-9 space-y-6">
-            <NotebookCard
-              courseId={courseId}
-              branchId={branchId}
-              semesterId={semesterId}
-            />
-            {/* Attach Ref here */}
-            <div ref={topicListRef} className="scroll-mt-24">
+          {/* Main Content Section
+            - Mobile: display:contents unwraps children.
+            - Desktop: lg:block restores wrapper and lg:space-y-6 handles internal spacing.
+          */}
+          <div className="contents lg:block lg:col-span-9 lg:space-y-6">
+            
+            {/* Mobile Order 1: NotebookCard appears first */}
+            <div className="order-1 lg:order-none">
+              <NotebookCard
+                courseId={courseId}
+                branchId={branchId}
+                semesterId={semesterId}
+              />
+            </div>
+
+            {/* Mobile Order 3: TopicList appears last */}
+            <div 
+              ref={topicListRef} 
+              className="order-3 lg:order-none scroll-mt-24"
+            >
               <TopicList
                 subjectId={selectedSubjectId}
                 activeTopicId={selectedTopicId}
