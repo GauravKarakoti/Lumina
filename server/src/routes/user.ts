@@ -2,56 +2,63 @@ import { Router } from 'express';
 import prisma from '../db.js';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+
+// --- NEW IMPORTS ---
+import multerS3 from 'multer-s3-v3';
+import { s3, generateSignedUrl } from '../lib/s3Utils.js'; // Import utility
+
+// Remove unused local file system imports (path, fs, fileURLToPath)
 
 const router = Router();
 
-// --- Multer Setup for Avatar Uploads ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Ensure upload directory exists: server/public/uploads
-const uploadDir = path.join(__dirname, '..', '..', 'public', 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Create unique filename: user-{id}-{timestamp}.ext
-    const userId = (req as any).user.id;
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `user-${userId}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
-
+// --- B2 & Multer Setup for Avatar Uploads ---
 const upload = multer({ 
-  storage: storage,
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.B2_BUCKET_NAME!,
+    // IMPORTANT: No 'acl: public-read' is needed, the bucket is private.
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: function (req: any, file: any, cb: any) {
+      const userId = (req as any).user.id;
+      const fileExtension = file.originalname.split('.').pop();
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      // Save the KEY (path) for the avatar
+      const s3Key = `avatars/user-${userId}-${uniqueSuffix}.${fileExtension}`;
+      cb(null, s3Key);
+    }
+  }),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only images are allowed'));
+      cb(new Error('Only images are allowed') as any, false);
     }
   }
 });
 
+// --- Helper function to sign the avatarUrl before returning to the client ---
+async function signUserAvatar(user: any) {
+  if (user?.avatarUrl && process.env.B2_BUCKET_NAME) {
+    user.avatarUrl = await generateSignedUrl(user.avatarUrl, process.env.B2_BUCKET_NAME);
+  }
+  return user;
+}
+
+
 // --- Routes ---
 
-// GET /api/user/me - Get current user details
+// GET /api/user/me - Get current user details AND sign the avatar URL
 router.get('/me', async (req: any, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: { id: true, email: true, name: true, avatarUrl: true, role: true }
     });
-    res.json(user);
+    
+    const signedUser = await signUserAvatar(user);
+
+    res.json(signedUser);
   } catch (error) {
     res.status(500).json({ message: "Error fetching profile" });
   }
@@ -66,7 +73,10 @@ router.put('/profile', async (req: any, res) => {
       data: { name },
       select: { id: true, email: true, name: true, avatarUrl: true, role: true }
     });
-    res.json(updatedUser);
+    
+    const signedUser = await signUserAvatar(updatedUser);
+
+    res.json(signedUser);
   } catch (error) {
     res.status(500).json({ message: "Error updating profile" });
   }
@@ -78,16 +88,18 @@ router.post('/avatar', upload.single('avatar'), async (req: any, res) => {
     return res.status(400).json({ message: "No file uploaded" });
   }
 
-  // Construct public URL (assuming server serves 'public' folder at root)
-  const avatarUrl = `/uploads/${req.file.filename}`;
+  const avatarKey = req.file.key;
 
   try {
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
-      data: { avatarUrl },
+      data: { avatarUrl: avatarKey }, // Save the KEY (path) to the database
       select: { id: true, email: true, name: true, avatarUrl: true, role: true }
     });
-    res.json(updatedUser);
+
+    const signedUser = await signUserAvatar(updatedUser);
+
+    res.json(signedUser);
   } catch (error) {
     res.status(500).json({ message: "Error updating avatar" });
   }

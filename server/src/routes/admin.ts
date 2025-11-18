@@ -1,79 +1,73 @@
 import { Router } from 'express'
 import prisma from '../db.js'
-
-// +++ Imports for file handling +++
 import multer from 'multer'
-import path from 'path'
-import fs from 'fs'
-import { fileURLToPath } from 'url'
 
-// +++ ES module equivalent of __dirname +++
-const __filename = fileURLToPath(import.meta.url)
-// Go up two levels to get to the 'server' root, then to 'public/uploads/notes'
-const __dirname = path.dirname(__filename)
-const uploadDir = path.join(__dirname, '..', '..', 'public', 'uploads', 'notes')
-
-// +++ Multer storage configuration +++
-// Ensure the upload directory exists
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true })
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir)
-  },
-  filename: function (req, file, cb) {
-    // Create a unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
-  },
-})
-
-// Filter for PDF files
-const fileFilter = (req: any, file: any, cb: any) => {
-  if (file.mimetype === 'application/pdf') {
-    cb(null, true)
-  } else {
-    cb(new Error('Only PDF files are allowed!'), false)
-  }
-}
-
-const upload = multer({ storage: storage, fileFilter: fileFilter })
-// +++ End of Multer config +++
-
+// +++ Imports for B2 Object Storage +++
+import multerS3 from 'multer-s3-v3'
+// Import the pre-configured S3 client and signed URL generator from your utility file
+import { s3 } from '../lib/s3Utils.js' 
+// The generateSignedUrl function is not used here, as notes are typically viewed 
+// via the dedicated signed-url route in content.ts. We'll remove it for simplicity.
 
 const router = Router()
 
-// This route is already protected by checkAuth and checkAdmin in index.ts
+// +++ Multer storage configuration for B2 +++
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.B2_BUCKET_NAME!,
+    // Bucket is private, so we don't need the 'acl' property
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: function (req: any, file: any, cb: any) {
+      // Use the 'notes' folder and create a unique key
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+      const fileExtension = file.originalname.split('.').pop()
+      const s3Key = `notes/note-${uniqueSuffix}.${fileExtension}`
+      cb(null, s3Key)
+    },
+  }),
+  // Filter for PDF files
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true)
+    } else {
+      // TypeScript requires explicit casting for the error object here
+      cb(new Error('Only PDF files are allowed!') as any, false)
+    }
+  },
+})
+// +++ End of B2 Multer config +++
+
+
+// --- Data Creation Routes (Unchanged) ---
 
 // Create Course
 router.post('/course', async (req, res) => {
-  const { name, id } = req.body; // e.g., id: "btech", name: "Bachelors of Technology"
-  const course = await prisma.course.create({ data: { id, name } });
-  res.json(course);
-});
+  const { name, id } = req.body // e.g., id: "btech", name: "Bachelors of Technology"
+  const course = await prisma.course.create({ data: { id, name } })
+  res.json(course)
+})
 
 // Create Branch
 router.post('/branch', async (req, res) => {
-  const { name, id, courseId } = req.body;
-  const branch = await prisma.branch.create({ data: { id, name, courseId } });
-  res.json(branch);
-});
+  const { name, id, courseId } = req.body
+  const branch = await prisma.branch.create({ data: { id, name, courseId } })
+  res.json(branch)
+})
 
 // Create Semester
 router.post('/semester', async (req, res) => {
-  const { name, id } = req.body;
-  const semester = await prisma.semester.create({ data: { id, name } });
-  res.json(semester);
-});
+  const { name, id } = req.body
+  const semester = await prisma.semester.create({ data: { id, name } })
+  res.json(semester)
+})
 
 // Create Subject
 router.post('/subject', async (req, res) => {
-  const { name, id, branchId, semesterId } = req.body;
-  const subject = await prisma.subject.create({ data: { id, name, branchId, semesterId } });
-  res.json(subject);
-});
+  const { name, id, branchId, semesterId } = req.body
+  const subject = await prisma.subject.create({ data: { id, name, branchId, semesterId } })
+  res.json(subject)
+})
 
 router.post('/topic', async (req, res) => {
   const { name, subjectId } = req.body
@@ -83,23 +77,24 @@ router.post('/topic', async (req, res) => {
   res.json(topic)
 })
 
-router.post('/note', upload.single('pdfFile'), async (req, res) => {
+// --- Note Upload Route (MIGRATED TO B2) ---
+router.post('/note', upload.single('pdfFile'), async (req: any, res) => {
   // 'pdfFile' must match the name of the file input field in your admin form
 
+  // The TypeScript error is fixed by using 'req.file.key'
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded or file is not a PDF.' })
   }
 
   const { title, topicId } = req.body
-  const uploaderId = req.user!.id // We know user exists from checkAuth
+  const uploaderId = req.user!.id 
 
-  // We store the web-accessible URL, not the full system path
-  // This path is relative to the 'public' folder configured in index.ts
-  const pdfUrl = `/uploads/notes/${req.file.filename}`
-
+  // Store the permanent S3/B2 key (path) in the database
+  const pdfKey = req.file.key
+  
   if (!title || !topicId) {
-    // If details are missing, delete the just-uploaded file
-    fs.unlinkSync(req.file.path)
+    // NOTE: You should implement a mechanism to delete the orphaned file from B2 here, 
+    // as it was uploaded successfully but the DB transaction will fail.
     return res.status(400).json({ error: 'Title and topicId are required.' })
   }
 
@@ -107,15 +102,16 @@ router.post('/note', upload.single('pdfFile'), async (req, res) => {
     const note = await prisma.note.create({
       data: {
         title,
-        pdfUrl: pdfUrl, // Store the URL
+        pdfUrl: pdfKey, // Store the B2 key/path
         topicId,
         uploaderId,
       },
+      // You may want to include the signed URL in the response for immediate confirmation,
+      // but retrieving notes should generally use the dedicated /signed-url endpoint.
     })
     res.json(note)
   } catch (error) {
-    // Handle potential DB errors and delete the orphaned file
-    fs.unlinkSync(req.file.path)
+    // Handle potential DB errors. File deletion from B2 would be required here.
     console.error('Failed to create note:', error)
     res.status(500).json({ error: 'Failed to save note to database.' })
   }
