@@ -6,9 +6,11 @@ import React, {
   ReactNode,
 } from 'react'
 
-interface AuthUser {
+export interface AuthUser {
   id: number
   email: string
+  name?: string | null     // Added
+  avatarUrl?: string | null // Added
   role: 'USER' | 'ADMIN'
 }
 
@@ -17,6 +19,7 @@ interface AuthContextType {
   token: string | null
   login: (token: string, user: AuthUser) => void
   logout: () => void
+  updateUser: (user: AuthUser) => void // Helper to update local state without relogin
   isAuthenticated: () => boolean
   isAdmin: () => boolean
 }
@@ -27,10 +30,8 @@ const getStoredUser = (): AuthUser | null => {
   const storedUser = localStorage.getItem('user');
   if (storedUser) {
     try {
-      // Try to parse the stored user
       return JSON.parse(storedUser) as AuthUser;
     } catch (e) {
-      // If parsing fails, remove the invalid item
       console.error("Failed to parse user from localStorage", e);
       localStorage.removeItem('user');
       return null;
@@ -40,10 +41,7 @@ const getStoredUser = (): AuthUser | null => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize user state directly from localStorage
   const [user, setUser] = useState<AuthUser | null>(getStoredUser())
-  
-  // Initialize token state directly from localStorage
   const [token, setToken] = useState<string | null>(
     localStorage.getItem('token')
   )
@@ -62,14 +60,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null)
   }
 
+  // New function to update user state (e.g., after profile edit)
+  const updateUser = (updatedUser: AuthUser) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser))
+    setUser(updatedUser)
+  }
+
   const isAuthenticated = () => !!token && !!user
-  console.log('User role:', user)
   const isAdmin = () => !!token && user?.role === 'ADMIN'
-  console.log('Is Admin:', isAdmin())
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, isAuthenticated, isAdmin }}
+      value={{ user, token, login, logout, updateUser, isAuthenticated, isAdmin }}
     >
       {children}
     </AuthContext.Provider>

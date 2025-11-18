@@ -12,8 +12,9 @@ import SelectSemester from "./pages/SelectSemester"
 
 // Import new components
 import Login from "./pages/Login"
-import Signup from "./pages/Signup" // Import Signup
+import Signup from "./pages/Signup"
 import AdminDashboard from "./pages/AdminDashboard"
+import Settings from "./pages/Settings" // Import Settings
 import ProtectedRoute from "./components/ProtectedRoute"
 import AdminRoute from "./components/AdminRoute"
 
@@ -29,7 +30,7 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} /> {/* Add Signup Route */}
+          <Route path="/signup" element={<Signup />} />
 
           {/* Protected Routes (Logged-in users) */}
           <Route element={<ProtectedRoute />}>
@@ -44,6 +45,7 @@ const App = () => (
               element={<Dashboard />}
             />
             <Route path="/dashboard" element={<SelectCourse />} />
+            <Route path="/settings" element={<Settings />} /> {/* Add Settings Route */}
           </Route>
 
           {/* Admin Routes (Admin users only) */}
