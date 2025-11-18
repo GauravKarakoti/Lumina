@@ -64,7 +64,11 @@ const Header = () => {
                       <Avatar className="h-10 w-10 border-2 border-primary/20">
                         {/* Generates a consistent random avatar based on the user's email */}
                         <AvatarImage 
-                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} 
+                          src={
+                            user?.avatarUrl 
+                            ? `${import.meta.env.VITE_BACKEND_URL}${user.avatarUrl}` 
+                            : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`
+                          } 
                           alt={user?.email || "User"} 
                         />
                         <AvatarFallback className="bg-primary/20 text-primary">
@@ -78,7 +82,7 @@ const Header = () => {
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">My Account</p>
                         <p className="text-xs leading-none text-muted-foreground">
-                          {user?.email}
+                          {user?.name ?? user?.email }
                         </p>
                       </div>
                     </DropdownMenuLabel>
