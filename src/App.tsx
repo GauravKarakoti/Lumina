@@ -15,6 +15,13 @@ import AdminDashboard from "./pages/AdminDashboard"
 import Settings from "./pages/Settings"
 import ProtectedRoute from "./components/ProtectedRoute"
 import AdminRoute from "./components/AdminRoute"
+import axios from "axios"
+
+async function wakeup() {
+  await axios.get(`${import.meta.env.VITE_BACKEND_URL}/`);
+  console.log("Backend wakeup call successful");
+}
+wakeup();
 
 const queryClient = new QueryClient()
 
