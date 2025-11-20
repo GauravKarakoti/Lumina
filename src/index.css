@@ -8,26 +8,69 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Cosmic Dark Theme - #210635, #420d4b, #7B337E, #6667AB, #F5D5E0 */
-    --background: 280 72% 11%;  /* #210635 - Deep space */
-    --foreground: 320 50% 92%;  /* #F5D5E0 - Light pink */
+    /* Light Theme Configuration
+      Base Color: #F5EBFA -> HSL(280, 50%, 95%)
+      Contrast: Deep Purple -> HSL(280, 72%, 11%)
+    */
+    --background: 280 50% 95%;
+    --foreground: 280 72% 11%;
 
-    --card: 285 62% 16%;  /* #420d4b - Dark purple card */
+    --card: 0 0% 100%;
+    --card-foreground: 280 72% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 280 72% 11%;
+
+    --primary: 280 60% 50%; /* Vibrant Purple for actions */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 280 30% 90%; /* Soft purple accent */
+    --secondary-foreground: 280 72% 11%;
+
+    --muted: 280 20% 92%;
+    --muted-foreground: 280 10% 40%;
+
+    --accent: 280 30% 90%;
+    --accent-foreground: 280 72% 11%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 280 20% 85%;
+    --input: 280 20% 85%;
+    --ring: 280 60% 50%;
+
+    --radius: 1rem;
+    
+    /* Cosmic tokens adapted for light mode */
+    --cosmic-glow: 280 60% 50%; 
+    --cosmic-deep: 280 50% 95%;
+    --cosmic-mid: 0 0% 100%;
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    /* Original Cosmic Dark Theme */
+    --background: 280 72% 11%;  /* #210635 */
+    --foreground: 320 50% 92%;  /* #F5D5E0 */
+
+    --card: 285 62% 16%;
     --card-foreground: 320 50% 92%;
 
     --popover: 285 62% 16%;
     --popover-foreground: 320 50% 92%;
 
-    --primary: 240 40% 53%;  /* #6667AB - Purple-blue */
+    --primary: 240 40% 53%;
     --primary-foreground: 320 50% 92%;
 
-    --secondary: 295 55% 34%;  /* #7B337E - Deep purple */
+    --secondary: 295 55% 34%;
     --secondary-foreground: 320 50% 92%;
 
     --muted: 285 50% 20%;
     --muted-foreground: 320 30% 75%;
 
-    --accent: 295 55% 34%;  /* #7B337E */
+    --accent: 295 55% 34%;
     --accent-foreground: 320 50% 92%;
 
     --destructive: 0 84.2% 60.2%;
@@ -37,50 +80,9 @@ All colors MUST be HSL.
     --input: 285 50% 20%;
     --ring: 240 40% 53%;
 
-    --radius: 1rem;
-    
-    /* Custom cosmic tokens */
-    --cosmic-glow: 320 50% 92%;  /* Pink glow */
-    --cosmic-deep: 280 72% 11%;  /* Deep space */
-    --cosmic-mid: 285 62% 16%;   /* Mid space */
-    --cosmic-accent: 240 40% 53%; /* Blue-purple */
-    --cosmic-secondary: 295 55% 34%; /* Deep purple */
-    
-    /* Gradients */
-    --gradient-cosmic: linear-gradient(135deg, hsl(280 72% 11%), hsl(285 62% 16%), hsl(295 55% 34%));
-    --gradient-glow: linear-gradient(135deg, hsl(240 40% 53%), hsl(295 55% 34%));
-    --gradient-hero: linear-gradient(180deg, hsl(280 72% 11% / 0.9), hsl(285 62% 16% / 0.95));
-    
-    /* Shadows */
-    --shadow-cosmic: 0 10px 40px hsl(240 40% 53% / 0.3);
-    --shadow-glow: 0 0 30px hsl(320 50% 92% / 0.2);
-    
-    /* Transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    --radius: 1rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    /* Same as root for consistent dark theme */
-    --background: 280 72% 11%;
-    --foreground: 320 50% 92%;
+    --cosmic-glow: 320 50% 92%;
+    --cosmic-deep: 280 72% 11%;
+    --cosmic-mid: 285 62% 16%;
   }
 }
 
@@ -91,14 +93,16 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(180deg, hsl(280 72% 11%), hsl(285 62% 16%));
+    /* Updated gradient to use variables instead of hardcoded colors */
+    background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--card)));
     min-height: 100vh;
   }
 }
 
 @layer utilities {
   .cosmic-glow {
-    box-shadow: 0 0 30px hsl(320 50% 92% / 0.2), 0 0 60px hsl(240 40% 53% / 0.15);
+    /* [!code change] Switched to variables: uses --cosmic-glow and --primary */
+    box-shadow: 0 0 30px hsl(var(--cosmic-glow) / 0.2), 0 0 60px hsl(var(--primary) / 0.15);
   }
 
   .prose {
@@ -119,9 +123,9 @@ All colors MUST be HSL.
 
   .no-download {
     user-select: none;
-    -webkit-user-select: none; /* Safari */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE10+ */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
   .no-download::selection {
     background: transparent;
@@ -131,13 +135,15 @@ All colors MUST be HSL.
   }
   
   .cosmic-card {
-    background: linear-gradient(135deg, hsl(285 62% 16% / 0.6), hsl(295 55% 34% / 0.4));
+    /* [!code change] Switched to variables: uses --card (top) and --secondary (bottom) */
+    background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(var(--secondary) / 0.4));
     backdrop-filter: blur(10px);
     border: 1px solid hsl(var(--border));
   }
   
   .text-glow {
-    text-shadow: 0 0 20px hsla(320, 51%, 92%, 0.092);
+    /* [!code change] Switched to variables: uses --cosmic-glow */
+    text-shadow: 0 0 20px hsl(var(--cosmic-glow) / 0.3);
   }
   
   .hover-glow {
@@ -145,7 +151,8 @@ All colors MUST be HSL.
   }
   
   .hover-glow:hover {
-    box-shadow: 0 0 30px hsl(240 40% 53% / 0.4);
+    /* [!code change] Switched to variables: uses --primary */
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
     transform: translateY(-2px);
   }
 }

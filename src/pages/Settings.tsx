@@ -131,9 +131,8 @@ const Settings = () => {
     }
   };
 
-  // Determine which avatar source to show (Uploaded > DiceBear Fallback)
   const displayAvatar = user?.avatarUrl 
-    ? `${import.meta.env.VITE_BACKEND_URL}${user.avatarUrl}` 
+    ? user.avatarUrl 
     : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`;
 
   return (

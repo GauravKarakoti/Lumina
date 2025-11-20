@@ -16,6 +16,7 @@ import Settings from "./pages/Settings"
 import ProtectedRoute from "./components/ProtectedRoute"
 import AdminRoute from "./components/AdminRoute"
 import axios from "axios"
+import GlobalNavigation from "./components/GlobalNavigation";
 
 async function wakeup() {
   await axios.get(`${import.meta.env.VITE_BACKEND_URL}/`);
@@ -31,6 +32,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <GlobalNavigation />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Index />} />

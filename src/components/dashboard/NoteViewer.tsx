@@ -115,13 +115,13 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
   }
 
   return (
-    <article className="prose dark:prose-invert max-w-none" ref={containerRef}>
+    <article className="prose dark:prose-invert max-w-none">
       <h2>{title}</h2>
       <Separator />
       {isError ? (
         <p className="text-red-500">Failed to load this PDF.</p>
       ) : (
-        <div onContextMenu={(e) => e.preventDefault()}>
+        <div onContextMenu={(e) => e.preventDefault()} ref={containerRef} className="overflow-x-hidden">
           {/* 3. Pass the fetched secure URL to the Document component */}
           <Document
             file={signedPdfUrl} 
