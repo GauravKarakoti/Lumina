@@ -8,16 +8,19 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String?  // [!code change] Make password optional
-  name      String?
-  avatarUrl String?
-  googleId  String?  // [!code change] Optional: Add googleId to track google users explicitly
-  role      Role     @default(USER)
-  notes     Note[]
-  createdAt DateTime @default(now())
-  notifications Notification[]
+  id                   Int      @id @default(autoincrement())
+  email                String   @unique
+  password             String?
+  name                 String?
+  avatarUrl            String?
+  googleId             String?
+  role                 Role     @default(USER)
+  // [!code focus:4] Add these fields
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  notes                Note[]
+  createdAt            DateTime @default(now())
+  notifications        Notification[]
 }
 
 model Notification {

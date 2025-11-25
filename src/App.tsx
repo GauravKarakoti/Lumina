@@ -17,6 +17,8 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import AdminRoute from "./components/AdminRoute"
 import axios from "axios"
 import GlobalNavigation from "./components/GlobalNavigation";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 async function wakeup() {
   await axios.get(`${import.meta.env.VITE_BACKEND_URL}/`);
@@ -38,7 +40,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          
           {/* Protected Routes (Logged-in users) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/select-course" element={<SelectCourse />} />

@@ -96,6 +96,9 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-sm text-muted-foreground hover:underline">Forgot password?</Link>
+              </div>
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
             

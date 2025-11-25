@@ -6,6 +6,8 @@ import { Role } from '@prisma/client'
 import { generateSignedUrl } from '../lib/s3Utils.js' //
 import { sendNotification } from '../lib/notification.js'
 import { OAuth2Client } from 'google-auth-library'
+import crypto from 'crypto';
+import { sendResetPasswordEmail } from '../lib/email.js';
 
 const router = Router()
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
@@ -178,6 +180,81 @@ router.post('/google', async (req, res) => {
   } catch (error: any) {
     console.error("Google Auth Error:", error);
     res.status(500).json({ message: 'Google authentication failed' });
+  }
+});
+
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // For security, don't reveal if user exists
+      return res.status(200).json({ message: 'If an account exists, an email has been sent.' });
+    }
+
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour from now
+
+    // Save token to DB
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: token,
+        resetPasswordExpires: expiresAt,
+      },
+    });
+
+    // Send Email
+    await sendResetPasswordEmail(user.email, token);
+
+    res.json({ message: 'If an account exists, an email has been sent.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Error processing request' });
+  }
+});
+
+// 2. Reset Password
+router.post('/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    // Find user with valid token
+    const user = await prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: {
+          gt: new Date(), // Check if not expired
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+
+    // Hash new password and clear token
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: 'Error resetting password' });
   }
 });
 
