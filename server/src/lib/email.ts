@@ -1,9 +1,13 @@
 import nodemailer from 'nodemailer';
 
+// Parse the port first
+const port = parseInt(process.env.SMTP_PORT!);
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
+  port: port,
+  // dynamically set secure to true if port is 465
+  secure: port === 465, 
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
