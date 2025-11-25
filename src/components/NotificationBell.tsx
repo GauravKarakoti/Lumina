@@ -16,6 +16,8 @@ interface Notification {
   message: string;
   isRead: boolean;
   createdAt: string;
+  link?: string;      // Added
+  imageUrl?: string;  // Added
 }
 
 export function NotificationBell() {
@@ -23,7 +25,6 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Fetch notifications
   const fetchNotifications = async () => {
     if (!token) return;
     try {
@@ -36,29 +37,34 @@ export function NotificationBell() {
     }
   };
 
-  // Initial fetch and polling (optional)
   useEffect(() => {
     fetchNotifications();
-    // Optional: Poll every 60 seconds
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, [token]);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const markAsRead = async (id: number) => {
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/notifications/${id}/read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // Update local state
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-      );
-    } catch (err) {
-      console.error("Failed to mark read");
+  const handleNotificationClick = async (notification: Notification) => {
+    // 1. Mark as read
+    if (!notification.isRead) {
+      try {
+        await axios.put(
+          `${import.meta.env.VITE_BACKEND_URL}/api/notifications/${notification.id}/read`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
+        );
+      } catch (err) {
+        console.error("Failed to mark read");
+      }
+    }
+
+    // 2. Open link in new tab if it exists
+    if (notification.link) {
+      window.open(notification.link, '_blank');
     }
   };
 
@@ -81,7 +87,7 @@ export function NotificationBell() {
             </span>
           )}
         </div>
-        <ScrollArea className="h-[300px]">
+        <ScrollArea className="h-[350px]">
           {notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
               No notifications yet
@@ -91,18 +97,29 @@ export function NotificationBell() {
               {notifications.map((notification) => (
                 <button
                   key={notification.id}
-                  onClick={() => markAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                   className={cn(
-                    "flex flex-col items-start gap-1 p-4 text-left text-sm transition-colors hover:bg-muted/50",
+                    "flex flex-col items-start gap-3 p-4 text-left text-sm transition-colors hover:bg-muted/50 w-full",
                     !notification.isRead && "bg-primary/5"
                   )}
                 >
-                  <p className={cn("leading-none", !notification.isRead && "font-semibold")}>
-                    {notification.message}
-                  </p>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(notification.createdAt).toLocaleDateString()}
-                  </span>
+                  {/* Thumbnail Image */}
+                  {notification.imageUrl && (
+                    <img 
+                      src={notification.imageUrl} 
+                      alt="Thumbnail" 
+                      className="w-full h-full object-cover rounded-md flex-shrink-0"
+                    />
+                  )}
+                  
+                  <div className="flex flex-col gap-1 overflow-hidden">
+                    <p className={cn("leading-tight", !notification.isRead && "font-semibold")}>
+                      {notification.message}
+                    </p>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(notification.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>

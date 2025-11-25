@@ -25,8 +25,9 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
   message   String
   isRead    Boolean  @default(false)
-  type      String   @default("INFO") // e.g., INFO, ALERT, SUCCESS
-  link      String?  // Optional link to redirect user when clicked
+  type      String   @default("INFO")
+  link      String?
+  imageUrl  String?  // Add this new field
   createdAt DateTime @default(now())
 }
 
