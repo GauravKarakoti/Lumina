@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Settings, LogOut, Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { NotificationBell } from "./NotificationBell";
 
 const Header = () => {
   const { isAuthenticated, isAdmin, logout, user } = useAuth();
@@ -89,6 +90,7 @@ const Header = () => {
 
             {isAuthenticated() ? (
               <div className="flex items-center gap-4">
+                <NotificationBell />
                 {isAdmin() && (
                   <Button
                     onClick={() => navigate("/admin")}

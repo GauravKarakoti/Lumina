@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 import prisma from '../db.js'
 import { Role } from '@prisma/client'
 import { generateSignedUrl } from '../lib/s3Utils.js' //
+import { sendNotification } from '../lib/notification.js'
 
 const router = Router()
 
@@ -41,6 +42,8 @@ router.post('/signup', async (req, res) => {
         role: Role.USER,
       },
     })
+
+    await sendNotification(user.id, `Welcome to StudyFlow, ${user.name || 'Student'}! 🚀`);
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },

@@ -5,6 +5,7 @@ import multer from 'multer';
 // --- NEW IMPORTS ---
 import multerS3 from 'multer-s3-v3';
 import { s3, generateSignedUrl } from '../lib/s3Utils.js'; // Import utility
+import { sendNotification } from '../lib/notification.js';
 
 const router = Router();
 
@@ -60,7 +61,8 @@ router.post('/upload-note', upload.single('pdf'), async (req: any, res) => {
       select: { id: true, title: true, pdfUrl: true, topicId: true }
     });
     
-    // Generate the signed URL to immediately return to the client for viewing
+    await sendNotification(uploaderId, `Your note "${title}" was successfully uploaded.`);
+
     if (newNote.pdfUrl && process.env.B2_BUCKET_NAME) {
         (newNote as any).signedUrl = await generateSignedUrl(newNote.pdfUrl, process.env.B2_BUCKET_NAME);
     }

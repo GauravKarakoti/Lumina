@@ -6,6 +6,7 @@ import multer from 'multer'
 import multerS3 from 'multer-s3-v3'
 // Import the pre-configured S3 client and signed URL generator from your utility file
 import { s3 } from '../lib/s3Utils.js' 
+import { sendNotification } from '../lib/notification.js'
 // The generateSignedUrl function is not used here, as notes are typically viewed 
 // via the dedicated signed-url route in content.ts. We'll remove it for simplicity.
 
@@ -109,6 +110,9 @@ router.post('/note', upload.single('pdfFile'), async (req: any, res) => {
       // You may want to include the signed URL in the response for immediate confirmation,
       // but retrieving notes should generally use the dedicated /signed-url endpoint.
     })
+
+    await sendNotification(uploaderId, `Admin Action: Note "${title}" created successfully.`);
+
     res.json(note)
   } catch (error) {
     // Handle potential DB errors. File deletion from B2 would be required here.

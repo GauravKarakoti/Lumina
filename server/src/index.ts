@@ -9,6 +9,7 @@ import { checkAdmin, checkAuth } from './middleware/checkAuth.js'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import contentRouter from './routes/content.js'
+import notificationRoutes from './routes/notifications.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -31,6 +32,7 @@ app.use('/api/admin', checkAuth, checkAdmin, adminRoutes);
 app.use('/api/user', checkAuth, userRoutes); // Register user routes (Protected)
 app.use('/api', apiRoutes);
 app.use('/api/content', contentRouter);
+app.use('/api/notifications', checkAuth, notificationRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`)

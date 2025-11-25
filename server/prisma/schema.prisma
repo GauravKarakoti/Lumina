@@ -16,6 +16,18 @@ model User {
   role      Role     @default(USER)
   notes     Note[]
   createdAt DateTime @default(now())
+  notifications Notification[]
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  isRead    Boolean  @default(false)
+  type      String   @default("INFO") // e.g., INFO, ALERT, SUCCESS
+  link      String?  // Optional link to redirect user when clicked
+  createdAt DateTime @default(now())
 }
 
 enum Role {
