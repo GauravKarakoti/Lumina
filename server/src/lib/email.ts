@@ -1,24 +1,13 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Parse the port first
-const port = parseInt(process.env.SMTP_PORT!);
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: port,
-  // dynamically set secure to true if port is 465
-  secure: port === 465, 
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Initialize with API Key from environment variables
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendResetPasswordEmail = async (email: string, token: string) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-  await transporter.sendMail({
-    from: '"StudyFlow" <no-reply@study-flow-veryl.vercel.app>',
+  await resend.emails.send({
+    from: 'StudyFlow <onboarding@resend.dev>', // Use a verified domain in production
     to: email,
     subject: 'Reset your password',
     html: `
