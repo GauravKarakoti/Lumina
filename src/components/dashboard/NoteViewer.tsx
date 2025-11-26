@@ -53,60 +53,60 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
   }
 
   useEffect(() => {
-  if (!id || !pdfKey) return;
+    if (!id || !pdfKey) return;
 
-  let cancelled = false;
-  let createdObjectUrl: string | null = null;
+    let cancelled = false;
+    let createdObjectUrl: string | null = null;
 
-  const fetchSignedUrlAndBlob = async () => {
-    setIsUrlLoading(true);
-    setSignedPdfUrl(null);
-    try {
-      // Try including pdfKey as query param (many backends expect either id or key)
-      const signedResp = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/content/note/signed-url/${id}`,
-        { params: { key: pdfKey } }
-      );
+    const fetchSignedUrlAndBlob = async () => {
+      setIsUrlLoading(true);
+      setSignedPdfUrl(null);
+      try {
+        // Try including pdfKey as query param (many backends expect either id or key)
+        const signedResp = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/content/note/signed-url/${id}`,
+          { params: { key: pdfKey } }
+        );
 
-      console.log("signed-url response", signedResp.data);
-      // Support several possible response shapes:
-      const url =
-        signedResp.data?.signedUrl ||
-        signedResp.data?.url ||
-        (typeof signedResp.data === "string" ? signedResp.data : null);
+        console.log("signed-url response", signedResp.data);
+        // Support several possible response shapes:
+        const url =
+          signedResp.data?.signedUrl ||
+          signedResp.data?.url ||
+          (typeof signedResp.data === "string" ? signedResp.data : null);
 
-      if (!url) {
-        throw new Error("No signed URL returned from the server");
+        if (!url) {
+          throw new Error("No signed URL returned from the server");
+        }
+
+        // Fetch the PDF as a blob (avoid CORS/display issues)
+        const pdfResp = await axios.get(url, { responseType: "blob" });
+        createdObjectUrl = URL.createObjectURL(pdfResp.data);
+
+        if (!cancelled) {
+          setSignedPdfUrl(createdObjectUrl);
+          setIsError(false);
+        }
+      } catch (err) {
+        console.error("Error fetching signed URL or PDF blob:", err);
+        setIsError(true);
+      } finally {
+        if (!cancelled) setIsUrlLoading(false);
       }
+    };
 
-      // Fetch the PDF as a blob (avoid CORS/display issues)
-      const pdfResp = await axios.get(url, { responseType: "blob" });
-      createdObjectUrl = URL.createObjectURL(pdfResp.data);
+    fetchSignedUrlAndBlob();
 
-      if (!cancelled) {
-        setSignedPdfUrl(createdObjectUrl);
-        setIsError(false);
+    return () => {
+      cancelled = true;
+      if (createdObjectUrl) {
+        URL.revokeObjectURL(createdObjectUrl);
       }
-    } catch (err) {
-      console.error("Error fetching signed URL or PDF blob:", err);
-      setIsError(true);
-    } finally {
-      if (!cancelled) setIsUrlLoading(false);
-    }
-  };
+    };
+  }, [id, pdfKey]);
 
-  fetchSignedUrlAndBlob();
-
-  return () => {
-    cancelled = true;
-    if (createdObjectUrl) {
-      URL.revokeObjectURL(createdObjectUrl);
-    }
-  };
-}, [id, pdfKey]);
-
-  // Handle Resizing
   useEffect(() => {
+    // If the ref isn't attached yet (e.g. still loading), skip
     if (!containerRef.current) return;
 
     // 1. Immediate measurement to ensure we don't start at 0
@@ -119,8 +119,6 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) {
-        // Use contentRect.width for accuracy
-        // Subtracting a small buffer (e.g. 1px) can sometimes help prevent sub-pixel rounding loops
         const width = entry.contentRect.width; 
         setContainerWidth(width > 0 ? width : 0);
       }
@@ -131,7 +129,8 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+    // Add isUrlLoading to dependencies so this runs again when loading finishes
+  }, [isUrlLoading]);
 
   if (isUrlLoading) {
     return (
