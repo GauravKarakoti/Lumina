@@ -19,6 +19,10 @@ import axios from "axios"
 import GlobalNavigation from "./components/GlobalNavigation";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import { LearnLayout } from "./pages/Learn/LearnLayout";
+import LearnMap from "./pages/Learn/LearnMap";
+import LeaderboardPage from "./pages/Learn/LeaderboardPage";
+import ForumPage from "./pages/Learn/ForumPage";
 
 async function wakeup() {
   await axios.get(`${import.meta.env.VITE_BACKEND_URL}/`);
@@ -57,6 +61,9 @@ const App = () => (
             />
             <Route path="/dashboard" element={<SelectCourse />} />
             <Route path="/settings" element={<Settings />} /> {/* Add Settings Route */}
+            <Route path="/learn" element={<LearnLayout><LearnMap /></LearnLayout>} />
+            <Route path="/learn/leaderboard" element={<LearnLayout><LeaderboardPage /></LearnLayout>} />
+            <Route path="/learn/forum" element={<LearnLayout><ForumPage /></LearnLayout>} />
           </Route>
 
           {/* Admin Routes (Admin users only) */}

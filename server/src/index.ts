@@ -11,6 +11,9 @@ import { fileURLToPath } from 'url'
 import contentRouter from './routes/content.js'
 import notificationRoutes from './routes/notifications.js';
 import { startYouTubeWatcher } from './lib/youtubeWatcher.js'
+import learnRoutes from './routes/learn.js';
+import leaderboardRoutes from './routes/leaderboard.js';
+import forumRoutes from './routes/forum.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,6 +37,9 @@ app.use('/api/user', checkAuth, userRoutes); // Register user routes (Protected)
 app.use('/api', apiRoutes);
 app.use('/api/content', contentRouter);
 app.use('/api/notifications', checkAuth, notificationRoutes);
+app.use('/api/learn', checkAuth, learnRoutes);
+app.use('/api/leaderboard', checkAuth, leaderboardRoutes);
+app.use('/api/forum', checkAuth, forumRoutes);
 
 startYouTubeWatcher();
 

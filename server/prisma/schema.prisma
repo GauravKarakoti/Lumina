@@ -8,19 +8,26 @@ datasource db {
 }
 
 model User {
-  id                   Int      @id @default(autoincrement())
-  email                String   @unique
+  id                   Int            @id @default(autoincrement())
+  email                String         @unique
   password             String?
   name                 String?
   avatarUrl            String?
   googleId             String?
-  role                 Role     @default(USER)
-  // [!code focus:4] Add these fields
+  role                 Role           @default(USER)
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
+  createdAt            DateTime       @default(now())
+  
+  // Relations
   notes                Note[]
-  createdAt            DateTime @default(now())
   notifications        Notification[]
+  
+  // New: Gamification & Forum Relations
+  progress             UserProgress?
+  challengeProgress    ChallengeProgress[]
+  forumThreads         ForumThread[]
+  forumPosts           ForumPost[]
 }
 
 model Notification {
@@ -44,6 +51,7 @@ model Course {
   id       String   @id // REMOVED @default(cuid())
   name     String
   branches Branch[]
+  units Unit[]
 }
 
 model Branch {
@@ -89,4 +97,97 @@ model Note {
   uploader   User     @relation(fields: [uploaderId], references: [id])
   uploaderId Int
   createdAt  DateTime @default(now())
+}
+
+model UserProgress {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  user           User     @relation(fields: [userId], references: [id])
+  hearts         Int      @default(5)
+  points         Int      @default(0)
+  activeCourseId String?  // Optional: Link to the course they are currently "learning"
+}
+
+model Unit {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  order       Int
+  courseId    String    // Links to StudyFlow's existing Course ID
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id         Int         @id @default(autoincrement())
+  title      String
+  order      Int
+  unitId     Int
+  unit       Unit        @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  challenges Challenge[]
+}
+
+enum ChallengeType {
+  SELECT
+  ASSIST
+}
+
+model Challenge {
+  id                Int                 @id @default(autoincrement())
+  lessonId          Int
+  lesson            Lesson              @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type              ChallengeType
+  question          String
+  order             Int
+  options           ChallengeOption[]
+  challengeProgress ChallengeProgress[]
+}
+
+model ChallengeOption {
+  id          Int       @id @default(autoincrement())
+  challengeId Int
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  text        String
+  correct     Boolean
+  imageSrc    String?
+  audioSrc    String?
+}
+
+model ChallengeProgress {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId Int
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  completed   Boolean   @default(false)
+
+  @@unique([userId, challengeId])
+}
+
+// --- NEW FORUM MODELS ---
+
+model ForumThread {
+  id             Int         @id @default(autoincrement())
+  title          String
+  body           String      @db.Text
+  authorId       Int
+  author         User        @relation(fields: [authorId], references: [id])
+  views          Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  posts          ForumPost[]
+}
+
+model ForumPost {
+  id           Int         @id @default(autoincrement())
+  body         String      @db.Text
+  threadId     Int
+  thread       ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId     Int
+  author       User        @relation(fields: [authorId], references: [id])
+  parentId     Int?        // For nested replies
+  parent       ForumPost?  @relation("PostReplies", fields: [parentId], references: [id])
+  replies      ForumPost[] @relation("PostReplies")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
