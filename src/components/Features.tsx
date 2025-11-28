@@ -11,6 +11,13 @@ import {
 
 const features = [
   {
+    icon: Brain,
+    title: "Learn with StudyFlow",
+    description: "Flashcards & quizzes",
+    detail: "Spaced repetition",
+    extra: "Learn and Test yourself"
+  },
+  {
     icon: Lightbulb,
     title: "Smart Notes",
     description: "AI-powered summaries",
@@ -23,13 +30,6 @@ const features = [
     description: "Track progress",
     detail: "Resource integration",
     extra: "Organize by subject"
-  },
-  {
-    icon: Brain,
-    title: "Active Recall Tools",
-    description: "Flashcards & quizzes",
-    detail: "Spaced repetition",
-    extra: "Test yourself"
   }
 ];
 
