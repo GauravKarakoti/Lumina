@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react' // <-- Import useRef
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import {
@@ -8,9 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/components/ui/use-toast'
 
@@ -24,7 +26,7 @@ const useApi = () => {
   return api
 }
 
-// Fetch functions (no changes here)
+// Existing University Fetch functions
 const fetchCourses = async () => (await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/courses`)).data
 const fetchBranches = async (courseId: string) =>
   (await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/branches/${courseId}`)).data
@@ -37,23 +39,36 @@ const fetchTopics = async (subjectId: string) =>
 const AdminDashboard = () => {
   const api = useApi()
   const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null) // <-- Add ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // --- University State ---
   const [courseId, setCourseId] = useState('')
   const [branchId, setBranchId] = useState('')
   const [semesterId, setSemesterId] = useState('')
   const [subjectId, setSubjectId] = useState('')
   const [topicId, setTopicId] = useState('')
-
-  // New Topic State
   const [newTopicName, setNewTopicName] = useState('')
-  
-  // --- Updated Note State ---
   const [newNoteTitle, setNewNoteTitle] = useState('')
-  // const [newNoteContent, setNewNoteContent] = useState('') // <-- REMOVE
-  const [newNoteFile, setNewNoteFile] = useState<File | null>(null) // <-- ADD
+  const [newNoteFile, setNewNoteFile] = useState<File | null>(null)
 
-  // Queries (no changes here)
+  // --- Learn State ---
+  const [learnCourseId, setLearnCourseId] = useState('')
+  const [learnUnitId, setLearnUnitId] = useState('')
+  
+  // Create Learn Course Inputs
+  const [newLearnCourseId, setNewLearnCourseId] = useState('')
+  const [newLearnCourseName, setNewLearnCourseName] = useState('')
+
+  // Create Unit Inputs
+  const [newUnitTitle, setNewUnitTitle] = useState('')
+  const [newUnitDesc, setNewUnitDesc] = useState('')
+  const [newUnitOrder, setNewUnitOrder] = useState('')
+
+  // Create Lesson Inputs
+  const [newLessonTitle, setNewLessonTitle] = useState('')
+  const [newLessonOrder, setNewLessonOrder] = useState('')
+
+  // --- University Queries ---
   const { data: courses } = useQuery({ queryKey: ['courses'], queryFn: fetchCourses })
   const { data: branches } = useQuery({
     queryKey: ['branches', courseId],
@@ -72,7 +87,22 @@ const AdminDashboard = () => {
     enabled: !!subjectId,
   })
 
-  // Mutations
+  // --- Learn Queries ---
+  // Must use 'api' instance for authentication
+  const { data: learnCourses } = useQuery({
+    queryKey: ['learnCourses'],
+    queryFn: async () => (await api.get('/learn/courses')).data
+  })
+  
+  const { data: learnUnits } = useQuery({
+    queryKey: ['learnUnits', learnCourseId],
+    queryFn: async () => (await api.get(`/learn/courses/${learnCourseId}/units`)).data,
+    enabled: !!learnCourseId
+  })
+
+  // --- Mutations ---
+
+  // University Mutations
   const createTopic = useMutation({
     mutationFn: (topicName: string) => api.post('/admin/topic', { name: topicName, subjectId }),
     onSuccess: () => {
@@ -83,34 +113,20 @@ const AdminDashboard = () => {
     onError: () => toast({ title: "Error creating topic", variant: "destructive" }),
   })
 
-  // --- Updated createNote Mutation ---
   const createNote = useMutation({
     mutationFn: () => {
-      if (!newNoteFile) {
-        return Promise.reject(new Error("No file selected"))
-      }
-      
+      if (!newNoteFile) return Promise.reject(new Error("No file selected"))
       const formData = new FormData()
       formData.append('title', newNoteTitle)
       formData.append('topicId', topicId)
-      formData.append('pdfFile', newNoteFile) // This name 'pdfFile' must match the backend
-
-      // Send as 'multipart/form-data'
-      return api.post('/admin/note', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+      formData.append('pdfFile', newNoteFile)
+      return api.post('/admin/note', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     },
     onSuccess: () => {
       toast({ title: "Note uploaded!" })
       setNewNoteTitle('')
       setNewNoteFile(null)
-      // Reset the file input field
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-      // You might want to invalidate notes query if you display them
+      if (fileInputRef.current) fileInputRef.current.value = ''
     },
     onError: (error: any) => {
       const message = error.response?.data?.error || "Error uploading note"
@@ -118,7 +134,55 @@ const AdminDashboard = () => {
     },
   })
 
-  // --- ADD File Change Handler ---
+  // Learn Mutations
+  const createLearnCourse = useMutation({
+    mutationFn: () => api.post('/admin/course', { 
+      id: newLearnCourseId, 
+      name: newLearnCourseName, 
+      type: 'LEARN' 
+    }),
+    onSuccess: () => {
+      toast({ title: "Learn Course created!" })
+      setNewLearnCourseId('')
+      setNewLearnCourseName('')
+      queryClient.invalidateQueries({ queryKey: ['learnCourses'] })
+    },
+    onError: () => toast({ title: "Error creating course", variant: "destructive" })
+  })
+
+  const createUnit = useMutation({
+    mutationFn: () => api.post('/admin/unit', {
+      title: newUnitTitle,
+      description: newUnitDesc,
+      order: newUnitOrder,
+      courseId: learnCourseId
+    }),
+    onSuccess: () => {
+      toast({ title: "Unit created!" })
+      setNewUnitTitle('')
+      setNewUnitDesc('')
+      setNewUnitOrder('')
+      queryClient.invalidateQueries({ queryKey: ['learnUnits', learnCourseId] })
+    },
+    onError: () => toast({ title: "Error creating unit", variant: "destructive" })
+  })
+
+  const createLesson = useMutation({
+    mutationFn: () => api.post('/admin/lesson', {
+      title: newLessonTitle,
+      order: newLessonOrder,
+      unitId: learnUnitId
+    }),
+    onSuccess: () => {
+      toast({ title: "Lesson created!" })
+      setNewLessonTitle('')
+      setNewLessonOrder('')
+      // Invalidate units to refresh structure
+      queryClient.invalidateQueries({ queryKey: ['learnUnits', learnCourseId] })
+    },
+    onError: () => toast({ title: "Error creating lesson", variant: "destructive" })
+  })
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
@@ -127,115 +191,221 @@ const AdminDashboard = () => {
       } else {
         toast({ title: "Invalid file type", description: "Please upload a PDF file.", variant: "destructive" })
         setNewNoteFile(null)
-        e.target.value = '' // Reset the input
+        e.target.value = ''
       }
     }
   }
 
-
   return (
     <div className="container mx-auto p-8 space-y-8">
-      <h1 className="text-3xl font-bold">Admin Panel - Upload</h1>
-      
-      {/* 1. Selectors (no changes here) */}
-      <div className="space-y-4 p-4 border rounded-lg">
-        <h2 className="text-xl font-semibold">1. Select Study Path</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Select onValueChange={setCourseId} value={courseId}>
-            <SelectTrigger><SelectValue placeholder="Select Course" /></SelectTrigger>
-            <SelectContent>
-              {courses?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+      <h1 className="text-3xl font-bold">Admin Panel</h1>
 
-          <Select onValueChange={setBranchId} value={branchId} disabled={!courseId}>
-            <SelectTrigger><SelectValue placeholder="Select Branch" /></SelectTrigger>
-            <SelectContent>
-              {branches?.map((b: any) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+      <Tabs defaultValue="university" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="university">University</TabsTrigger>
+          <TabsTrigger value="learn">Learn (Gamified)</TabsTrigger>
+        </TabsList>
+
+        {/* --- UNIVERSITY TAB --- */}
+        <TabsContent value="university" className="space-y-8 mt-6">
+          <div className="space-y-4 p-4 border rounded-lg">
+            <h2 className="text-xl font-semibold">1. Select Study Path</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Select onValueChange={setCourseId} value={courseId}>
+                <SelectTrigger><SelectValue placeholder="Select Course" /></SelectTrigger>
+                <SelectContent>
+                  {courses?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Select onValueChange={setBranchId} value={branchId} disabled={!courseId}>
+                <SelectTrigger><SelectValue placeholder="Select Branch" /></SelectTrigger>
+                <SelectContent>
+                  {branches?.map((b: any) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              
+              <Select onValueChange={setSemesterId} value={semesterId} disabled={!branchId}>
+                <SelectTrigger><SelectValue placeholder="Select Semester" /></SelectTrigger>
+                <SelectContent>
+                  {semesters?.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              
+              <Select onValueChange={setSubjectId} value={subjectId} disabled={!semesterId}>
+                <SelectTrigger className="md:col-span-2"><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                <SelectContent>
+                  {subjects?.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
-          <Select onValueChange={setSemesterId} value={semesterId} disabled={!branchId}>
-            <SelectTrigger><SelectValue placeholder="Select Semester" /></SelectTrigger>
-            <SelectContent>
-              {semesters?.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {subjectId && (
+            <div className="space-y-4 p-4 border rounded-lg">
+              <h2 className="text-xl font-semibold">2. Create New Topic</h2>
+              <div className="flex gap-4">
+                <Input 
+                  placeholder="Enter new topic name" 
+                  value={newTopicName}
+                  onChange={(e) => setNewTopicName(e.target.value)}
+                />
+                <Button onClick={() => createTopic.mutate(newTopicName)} disabled={!newTopicName || createTopic.isPending}>
+                  {createTopic.isPending ? "Creating..." : "Create Topic"}
+                </Button>
+              </div>
+            </div>
+          )}
           
-          <Select onValueChange={setSubjectId} value={subjectId} disabled={!semesterId}>
-            <SelectTrigger className="md:col-span-2"><SelectValue placeholder="Select Subject" /></SelectTrigger>
-            <SelectContent>
-              {subjects?.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      {/* 2. Create Topic (no changes here) */}
-      {subjectId && (
-        <div className="space-y-4 p-4 border rounded-lg">
-          <h2 className="text-xl font-semibold">2. Create New Topic</h2>
-          <div className="flex gap-4">
-            <Input 
-              placeholder="Enter new topic name" 
-              value={newTopicName}
-              onChange={(e) => setNewTopicName(e.target.value)}
-            />
-            <Button onClick={() => createTopic.mutate(newTopicName)} disabled={!newTopicName || createTopic.isPending}>
-              {createTopic.isPending ? "Creating..." : "Create Topic"}
+          {subjectId && (
+            <div className="space-y-4 p-4 border rounded-lg">
+              <h2 className="text-xl font-semibold">3. Upload Note to Topic</h2>
+              <Label>Select Topic</Label>
+              <Select onValueChange={setTopicId} value={topicId} disabled={!subjectId}>
+                <SelectTrigger><SelectValue placeholder="Select Topic" /></SelectTrigger>
+                <SelectContent>
+                  {topics?.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              
+              {topicId && (
+                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); createNote.mutate(); }}>
+                  <div>
+                    <Label htmlFor="noteTitle">Note Title</Label>
+                    <Input 
+                      id="noteTitle" 
+                      placeholder="e.g., Introduction to Karnaugh Maps" 
+                      value={newNoteTitle}
+                      onChange={(e) => setNewNoteTitle(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="noteFile">Note PDF</Label>
+                    <Input 
+                      id="noteFile"
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" disabled={createNote.isPending || !newNoteTitle || !newNoteFile}>
+                    {createNote.isPending ? "Uploading..." : "Upload Note"}
+                  </Button>
+                </form>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* --- LEARN TAB --- */}
+        <TabsContent value="learn" className="space-y-8 mt-6">
+          
+          {/* 1. Create Course */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <h2 className="text-xl font-semibold">1. Create Learn Course</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input 
+                placeholder="Course ID (e.g., 'dsa-learn')" 
+                value={newLearnCourseId}
+                onChange={(e) => setNewLearnCourseId(e.target.value)}
+              />
+              <Input 
+                placeholder="Course Name (e.g., 'DSA Masterclass')" 
+                value={newLearnCourseName}
+                onChange={(e) => setNewLearnCourseName(e.target.value)}
+              />
+            </div>
+            <Button 
+              onClick={() => createLearnCourse.mutate()} 
+              disabled={!newLearnCourseId || !newLearnCourseName || createLearnCourse.isPending}
+            >
+              Create Course
             </Button>
           </div>
-        </div>
-      )}
-      
-      {/* 3. Upload Note (UPDATED) */}
-      {subjectId && (
-        <div className="space-y-4 p-4 border rounded-lg">
-          <h2 className="text-xl font-semibold">3. Upload Note to Topic</h2>
-          
-          <Label>Select Topic</Label>
-          <Select onValueChange={setTopicId} value={topicId} disabled={!subjectId}>
-            <SelectTrigger><SelectValue placeholder="Select Topic" /></SelectTrigger>
-            <SelectContent>
-              {topics?.map((t: any) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          
-          {topicId && (
-            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); createNote.mutate(); }}>
-              <div>
-                <Label htmlFor="noteTitle">Note Title</Label>
-                <Input 
-                  id="noteTitle" 
-                  placeholder="e.g., Introduction to Karnaugh Maps" 
-                  value={newNoteTitle}
-                  onChange={(e) => setNewNoteTitle(e.target.value)}
-                  required
-                />
-              </div>
-              
-              {/* --- UPDATED File Input --- */}
-              <div>
-                <Label htmlFor="noteFile">Note PDF</Label>
-                <Input 
-                  id="noteFile"
-                  type="file"
-                  accept="application/pdf" // Only allow PDF files
-                  onChange={handleFileChange}
-                  ref={fileInputRef} // Attach the ref
-                  required
-                />
-              </div>
 
-              {/* --- REMOVED Textarea --- */}
-              
-              <Button type="submit" disabled={createNote.isPending || !newNoteTitle || !newNoteFile}>
-                {createNote.isPending ? "Uploading..." : "Upload Note"}
-              </Button>
-            </form>
+          {/* 2. Select Course & Create Unit */}
+          <div className="space-y-4 p-4 border rounded-lg">
+            <h2 className="text-xl font-semibold">2. Create Unit</h2>
+            <Label>Select Learn Course</Label>
+            <Select onValueChange={setLearnCourseId} value={learnCourseId}>
+              <SelectTrigger><SelectValue placeholder="Select Course" /></SelectTrigger>
+              <SelectContent>
+                {learnCourses?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+
+            {learnCourseId && (
+              <div className="space-y-4 mt-4 border-t pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input 
+                    placeholder="Unit Title" 
+                    value={newUnitTitle}
+                    onChange={(e) => setNewUnitTitle(e.target.value)}
+                  />
+                  <Input 
+                    type="number"
+                    placeholder="Order (e.g. 1)" 
+                    value={newUnitOrder}
+                    onChange={(e) => setNewUnitOrder(e.target.value)}
+                  />
+                </div>
+                <Textarea 
+                  placeholder="Unit Description"
+                  value={newUnitDesc}
+                  onChange={(e) => setNewUnitDesc(e.target.value)}
+                />
+                <Button 
+                  onClick={() => createUnit.mutate()} 
+                  disabled={!newUnitTitle || !newUnitOrder || createUnit.isPending}
+                >
+                  Create Unit
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Select Unit & Create Lesson */}
+          {learnCourseId && (
+            <div className="space-y-4 p-4 border rounded-lg">
+              <h2 className="text-xl font-semibold">3. Create Lesson</h2>
+              <Label>Select Unit</Label>
+              <Select onValueChange={setLearnUnitId} value={learnUnitId}>
+                <SelectTrigger><SelectValue placeholder="Select Unit" /></SelectTrigger>
+                <SelectContent>
+                  {learnUnits?.map((u: any) => <SelectItem key={u.id} value={u.id.toString()}>{u.order}. {u.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              {learnUnitId && (
+                <div className="space-y-4 mt-4 border-t pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input 
+                      placeholder="Lesson Title" 
+                      value={newLessonTitle}
+                      onChange={(e) => setNewLessonTitle(e.target.value)}
+                    />
+                    <Input 
+                      type="number"
+                      placeholder="Order (e.g. 1)" 
+                      value={newLessonOrder}
+                      onChange={(e) => setNewLessonOrder(e.target.value)}
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => createLesson.mutate()} 
+                    disabled={!newLessonTitle || !newLessonOrder || createLesson.isPending}
+                  >
+                    Create Lesson
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
