@@ -26,6 +26,7 @@ import ForumPage from "./pages/Learn/ForumPage";
 import LessonPage from "./pages/Learn/LessonPage";
 import ForumThreadPage from "./pages/Learn/ForumThreadPage";
 import { useEffect } from "react"; // Added useEffect import
+import LearnCourses from "./pages/Learn/LearnCourses";
 
 async function wakeup() {
   await axios.get(`${import.meta.env.VITE_BACKEND_URL}/`);
@@ -77,6 +78,7 @@ const App = () => {
               <Route path="/dashboard" element={<SelectCourse />} />
               <Route path="/settings" element={<Settings />} /> 
               <Route path="/learn" element={<LearnLayout><LearnMap /></LearnLayout>} />
+              <Route path="/learn/courses" element={<LearnLayout><LearnCourses /></LearnLayout>} />
               <Route path="/learn/lesson/:lessonId" element={<LessonPage />} />
               <Route path="/learn/leaderboard" element={<LearnLayout><LeaderboardPage /></LearnLayout>} />
               <Route path="/learn/forum" element={<LearnLayout><ForumPage /></LearnLayout>} />

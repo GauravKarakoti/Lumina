@@ -3,7 +3,6 @@ import prisma from '../db.js';
 
 const router = Router();
 
-// [ADD THIS] Refill Logic Helper
 const HEART_REFILL_INTERVAL = 30 * 60 * 1000; // 30 Minutes per heart
 const MAX_HEARTS = 5;
 
@@ -28,11 +27,7 @@ async function checkAndRefillHearts(userId: number) {
     if (heartsToRecover > 0) {
       const newHearts = Math.min(MAX_HEARTS, progress.hearts + heartsToRecover);
       
-      // We don't just set 'now', we calculate the time used to recover 
-      // so the "remainder" time counts towards the next heart.
-      // E.g. if 40 mins passed, we use 30 mins for 1 heart, leaving 10 mins "banked".
       const timeUsed = heartsToRecover * HEART_REFILL_INTERVAL;
-      // Prevent date overflow if fully healed (just set to now)
       const newRefillDate = newHearts === MAX_HEARTS 
         ? now 
         : new Date(new Date(progress.lastRefillAt).getTime() + timeUsed);
@@ -48,6 +43,52 @@ async function checkAndRefillHearts(userId: number) {
   }
   return progress;
 }
+
+router.get('/progress', async (req, res) => {
+  // @ts-ignore
+  const userId = req.user.id;
+  try {
+    const progress = await checkAndRefillHearts(userId);
+    res.json(progress);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch progress' });
+  }
+});
+
+router.post('/courses/select', async (req, res) => {
+  const { courseId } = req.body;
+  // @ts-ignore
+  const userId = req.user.id;
+
+  try {
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId, type: 'LEARN' }
+    });
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    // Update or create user progress with active course
+    const progress = await prisma.userProgress.upsert({
+      where: { userId },
+      update: { activeCourseId: courseId },
+      create: { 
+        userId, 
+        activeCourseId: courseId,
+        hearts: 5, 
+        points: 0,
+        lastRefillAt: new Date()
+      }
+    });
+
+    res.json({ success: true, activeCourseId: progress.activeCourseId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to select course' });
+  }
+});
 
 router.get('/courses', async (req, res) => {
   try {

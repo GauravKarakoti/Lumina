@@ -1,24 +1,48 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Check, Star, Lock } from "lucide-react";
+import { Check, Star, Lock, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 export default function LearnMap() {
   const [units, setUnits] = useState<any[]>([]);
-  // Hardcoded for demo, normally comes from user selection
-  const courseId = "java-basics"; 
   const navigate = useNavigate();
 
+  // 1. Fetch User Progress to get Active Course
+  const { data: progress, isLoading: loadingProgress } = useQuery({
+    queryKey: ["learn-progress"],
+    queryFn: async () => {
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/learn/progress`, {
+         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      return res.data;
+    }
+  });
+
+  // 2. Effect: Handle Redirect or Fetch Units
   useEffect(() => {
-    // Fetch units from backend
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/learn/courses/${courseId}/units`, {
-       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    }).then(res => setUnits(res.data));
-  }, []);
+    if (!loadingProgress) {
+      if (!progress?.activeCourseId) {
+        // Redirect if no course selected
+        navigate("/learn/courses");
+      } else {
+        // Fetch units for the active course
+        axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/learn/courses/${progress.activeCourseId}/units`, {
+           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }).then(res => setUnits(res.data));
+      }
+    }
+  }, [progress, loadingProgress, navigate]);
+
+  if (loadingProgress) {
+    return <div className="flex justify-center py-20"><Loader2 className="animate-spin w-10 h-10 text-cosmic-glow" /></div>;
+  }
+
+  if (!progress?.activeCourseId) return null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-12">
+    <div className="max-w-2xl mx-auto space-y-12 pb-20">
       {units.map((unit) => (
         <div key={unit.id} className="space-y-6">
           <div className="bg-cosmic-deep/50 p-6 rounded-2xl border border-cosmic-glow/20">
@@ -42,7 +66,7 @@ export default function LearnMap() {
                    disabled={isLocked}
                    onClick={() => navigate(`/learn/lesson/${lesson.id}`)}
                  >
-                   {lesson.completed ? <Check /> : isLocked ? <Lock /> : <Star fill="purple" />}
+                   {lesson.completed ? <Check /> : isLocked ? <Lock /> : <Star fill="white" />}
                  </Button>
                );
              })}

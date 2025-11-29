@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { BookOpen, Trophy, MessageSquare } from "lucide-react";
+import { BookOpen, Trophy, MessageSquare, Library } from "lucide-react"; // Import Library icon
 import { cn } from "@/lib/utils";
 
 const sidebarItems = [
+  { label: "Courses", href: "/learn/courses", icon: Library }, // Add Courses item
   { label: "Learn", href: "/learn", icon: BookOpen },
   { label: "Leaderboard", href: "/learn/leaderboard", icon: Trophy },
   { label: "Forum", href: "/learn/forum", icon: MessageSquare },
@@ -24,6 +25,7 @@ export const LearnLayout = ({ children }: { children: React.ReactNode }) => {
             to={item.href}
             className={cn(
               "flex items-center gap-4 p-3 rounded-xl transition-colors hover:bg-muted",
+              // Highlight if pathname matches exactly OR if browsing courses
               location.pathname === item.href && "bg-cosmic-mid/20 text-cosmic-glow border border-cosmic-glow/30"
             )}
           >
