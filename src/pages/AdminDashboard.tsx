@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from '@/components/ui/use-toast'
 
@@ -54,6 +55,7 @@ const AdminDashboard = () => {
   // --- Learn State ---
   const [learnCourseId, setLearnCourseId] = useState('')
   const [learnUnitId, setLearnUnitId] = useState('')
+  const [learnLessonId, setLearnLessonId] = useState('')
   
   // Create Learn Course Inputs
   const [newLearnCourseId, setNewLearnCourseId] = useState('')
@@ -67,6 +69,16 @@ const AdminDashboard = () => {
   // Create Lesson Inputs
   const [newLessonTitle, setNewLessonTitle] = useState('')
   const [newLessonOrder, setNewLessonOrder] = useState('')
+
+  // Create Challenge Inputs
+  const [newChallengeQuestion, setNewChallengeQuestion] = useState('')
+  const [newChallengeType, setNewChallengeType] = useState('SELECT')
+  const [newChallengeOrder, setNewChallengeOrder] = useState('')
+
+  // Create Option Inputs
+  const [selectedChallengeId, setSelectedChallengeId] = useState('')
+  const [newOptionText, setNewOptionText] = useState('')
+  const [newOptionCorrect, setNewOptionCorrect] = useState(false)
 
   // --- University Queries ---
   const { data: courses } = useQuery({ queryKey: ['courses'], queryFn: fetchCourses })
@@ -94,11 +106,19 @@ const AdminDashboard = () => {
     queryFn: async () => (await api.get('/learn/courses')).data
   })
   
+  // This fetches Units > Lessons > Challenges
   const { data: learnUnits } = useQuery({
     queryKey: ['learnUnits', learnCourseId],
     queryFn: async () => (await api.get(`/learn/courses/${learnCourseId}/units`)).data,
     enabled: !!learnCourseId
   })
+
+  // Derived State for Selects
+  const selectedUnit = learnUnits?.find((u: any) => u.id.toString() === learnUnitId)
+  const availableLessons = selectedUnit?.lessons || []
+  
+  const selectedLesson = availableLessons.find((l: any) => l.id.toString() === learnLessonId)
+  const availableChallenges = selectedLesson?.challenges || []
 
   // --- Mutations ---
 
@@ -181,6 +201,38 @@ const AdminDashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['learnUnits', learnCourseId] })
     },
     onError: () => toast({ title: "Error creating lesson", variant: "destructive" })
+  })
+
+  const createChallenge = useMutation({
+    mutationFn: () => api.post('/admin/challenge', {
+      question: newChallengeQuestion,
+      type: newChallengeType,
+      order: newChallengeOrder,
+      lessonId: learnLessonId
+    }),
+    onSuccess: () => {
+      toast({ title: "Challenge created!" })
+      setNewChallengeQuestion('')
+      setNewChallengeOrder('')
+      queryClient.invalidateQueries({ queryKey: ['learnUnits', learnCourseId] })
+    },
+    onError: () => toast({ title: "Error creating challenge", variant: "destructive" })
+  })
+
+  const createOption = useMutation({
+    mutationFn: () => api.post('/admin/challenge-option', {
+      text: newOptionText,
+      correct: newOptionCorrect,
+      challengeId: selectedChallengeId
+    }),
+    onSuccess: () => {
+      toast({ title: "Option added!" })
+      setNewOptionText('')
+      setNewOptionCorrect(false)
+      // Refresh to see the options or at least keep data consistent
+      queryClient.invalidateQueries({ queryKey: ['learnUnits', learnCourseId] })
+    },
+    onError: () => toast({ title: "Error adding option", variant: "destructive" })
   })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -372,7 +424,7 @@ const AdminDashboard = () => {
             <div className="space-y-4 p-4 border rounded-lg">
               <h2 className="text-xl font-semibold">3. Create Lesson</h2>
               <Label>Select Unit</Label>
-              <Select onValueChange={setLearnUnitId} value={learnUnitId}>
+              <Select onValueChange={(val) => { setLearnUnitId(val); setLearnLessonId(''); }} value={learnUnitId}>
                 <SelectTrigger><SelectValue placeholder="Select Unit" /></SelectTrigger>
                 <SelectContent>
                   {learnUnits?.map((u: any) => <SelectItem key={u.id} value={u.id.toString()}>{u.order}. {u.title}</SelectItem>)}
@@ -404,6 +456,101 @@ const AdminDashboard = () => {
               )}
             </div>
           )}
+
+          {/* 4. Select Lesson & Create Challenge */}
+          {learnUnitId && (
+            <div className="space-y-4 p-4 border rounded-lg">
+              <h2 className="text-xl font-semibold">4. Create Challenge</h2>
+              <Label>Select Lesson</Label>
+              <Select onValueChange={setLearnLessonId} value={learnLessonId}>
+                <SelectTrigger><SelectValue placeholder="Select Lesson" /></SelectTrigger>
+                <SelectContent>
+                  {availableLessons.map((l: any) => (
+                    <SelectItem key={l.id} value={l.id.toString()}>{l.order}. {l.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {learnLessonId && (
+                <div className="space-y-4 mt-4 border-t pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Select onValueChange={setNewChallengeType} value={newChallengeType}>
+                        <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="SELECT">Select</SelectItem>
+                            <SelectItem value="ASSIST">Assist</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Input 
+                      type="number"
+                      placeholder="Order (e.g. 1)" 
+                      value={newChallengeOrder}
+                      onChange={(e) => setNewChallengeOrder(e.target.value)}
+                    />
+                  </div>
+                  <Textarea 
+                      placeholder="Question Text" 
+                      value={newChallengeQuestion}
+                      onChange={(e) => setNewChallengeQuestion(e.target.value)}
+                  />
+                  <Button 
+                    onClick={() => createChallenge.mutate()} 
+                    disabled={!newChallengeQuestion || !newChallengeOrder || createChallenge.isPending}
+                  >
+                    Create Challenge
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 5. Add Options to Challenge */}
+          {learnLessonId && availableChallenges.length > 0 && (
+             <div className="space-y-4 p-4 border rounded-lg">
+               <h2 className="text-xl font-semibold">5. Add Options to Challenge</h2>
+               <Label>Select Challenge</Label>
+               <Select onValueChange={setSelectedChallengeId} value={selectedChallengeId}>
+                 <SelectTrigger><SelectValue placeholder="Select Challenge" /></SelectTrigger>
+                 <SelectContent>
+                   {availableChallenges.map((c: any) => (
+                     <SelectItem key={c.id} value={c.id.toString()}>
+                       {c.order}. {c.question.substring(0, 50)}...
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+
+               {selectedChallengeId && (
+                 <div className="space-y-4 mt-4 border-t pt-4">
+                    <Input 
+                      placeholder="Option Text" 
+                      value={newOptionText}
+                      onChange={(e) => setNewOptionText(e.target.value)}
+                    />
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="correct" 
+                        checked={newOptionCorrect}
+                        onCheckedChange={(checked) => setNewOptionCorrect(checked as boolean)}
+                      />
+                      <label
+                        htmlFor="correct"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Is Correct Answer?
+                      </label>
+                    </div>
+                    <Button 
+                      onClick={() => createOption.mutate()}
+                      disabled={!newOptionText || createOption.isPending}
+                    >
+                      Add Option
+                    </Button>
+                 </div>
+               )}
+             </div>
+          )}
+
         </TabsContent>
       </Tabs>
     </div>

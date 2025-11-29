@@ -99,6 +99,33 @@ router.post('/lesson', async (req, res) => {
   res.json(lesson)
 })
 
+// Create Challenge
+router.post('/challenge', async (req, res) => {
+  const { question, type, lessonId, order } = req.body
+  const challenge = await prisma.challenge.create({
+    data: {
+      question,
+      type, // 'SELECT' or 'ASSIST'
+      lessonId: parseInt(lessonId),
+      order: parseInt(order)
+    }
+  })
+  res.json(challenge)
+})
+
+// Create Challenge Option
+router.post('/challenge-option', async (req, res) => {
+  const { text, correct, challengeId } = req.body
+  const option = await prisma.challengeOption.create({
+    data: {
+      text,
+      correct: Boolean(correct),
+      challengeId: parseInt(challengeId)
+    }
+  })
+  res.json(option)
+})
+
 // --- Note Upload Route ---
 router.post('/note', upload.single('pdfFile'), async (req: any, res) => {
   if (!req.file) {
