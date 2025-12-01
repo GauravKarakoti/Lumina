@@ -113,17 +113,38 @@ export default function LearnMap() {
                 const nextLesson = index < unit.lessons.length - 1 ? unit.lessons[index + 1] : null;
                 
                 // Determine Status
-                const isCompleted = lesson.completed;
-                const isLocked = !lesson.completed && (prevLesson ? !prevLesson.completed : false);
-                const isCurrent = !isCompleted && !isLocked;
-
+                let isPrevCompleted = false;
+                
                 // Snake Path Logic
                 // We use Sine wave to calculate X offset
                 // Amplitude 80px, Frequency roughly every 4 items returns to center
                 const xOffset = Math.sin(index * 0.8) * 70;
                 const nextXOffset = nextLesson ? Math.sin((index + 1) * 0.8) * 70 : xOffset;
                 
-                const gap = 100; // Vertical gap between nodes
+                const gap = 100;
+                
+                if (index > 0) {
+                  // If not the first lesson in the unit, check the previous lesson in this unit
+                  isPrevCompleted = unit.lessons[index - 1].completed;
+                } else {
+                  // If it IS the first lesson of the unit
+                  if (unitIndex === 0) {
+                    // The very first lesson of the entire course is always unlocked
+                    isPrevCompleted = true;
+                  } else {
+                    // Otherwise, check the LAST lesson of the PREVIOUS unit
+                    const prevUnit = units[unitIndex - 1];
+                    // Ensure previous unit has lessons; if empty, we assume it's "done"
+                    if (prevUnit.lessons && prevUnit.lessons.length > 0) {
+                      isPrevCompleted = prevUnit.lessons[prevUnit.lessons.length - 1].completed;
+                    } else {
+                      isPrevCompleted = true;
+                    }
+                  }
+                }
+                const isCompleted = lesson.completed;
+                const isLocked = !lesson.completed && !isPrevCompleted;
+                const isCurrent = !isCompleted && !isLocked;
 
                 return (
                   <div 
