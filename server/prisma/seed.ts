@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { ChallengeType, CourseType, PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 const courses = [
@@ -153,74 +153,1282 @@ const subjects = [
 { id: "it310", name: "Object Oriented Programming using C++ Lab", branch: "it", semester: "sem3" }
 ];
 
+const LANGUAGES = [
+  'JavaScript',
+  'Python',
+  'C',
+  'C++',
+  'C#',
+  'Go',
+  'Rust',
+  'TypeScript',
+  'Kotlin',
+  'Swift',
+  'PHP',
+  'Ruby',
+  'SQL',
+  'Bash'
+];
+
+const UNIT_TEMPLATES = [
+  {
+    title: (lang) => `Introduction to ${lang}`,
+    description: (lang) => `Overview: what ${lang} is, history, typical use-cases`,
+    lessons: [
+      {
+        title: (lang) => `What is ${lang}?`,
+        questions: [
+          (lang) => `Which domain is ${lang} commonly used in?`,
+          (lang) => `${lang} is primarily considered which kind of language?`
+        ],
+        options: (lang, i) => {
+          // i: question index
+          if (i === 0) {
+            return [
+              { text: 'Web / Scripting', correct: lang === 'JavaScript' || lang === 'PHP' || lang === 'Ruby' || lang === 'Python' || lang === 'Bash' },
+              { text: 'Systems', correct: lang === 'C' || lang === 'C++' || lang === 'Rust' || lang === 'Go' },
+              { text: 'Databases', correct: lang === 'SQL' }
+            ];
+          } else {
+            return [
+              { text: 'Low-level', correct: lang === 'C' || lang === 'Assembly' },
+              { text: 'High-level', correct: true },
+              { text: 'Markup', correct: false }
+            ];
+          }
+        }
+      },
+      {
+        title: (lang) => `Setup & Tooling for ${lang}`,
+        questions: [
+          (lang) => `Which command is commonly used to run ${lang} code?`,
+          (lang) => `Which file extension is typical for ${lang} source files?`
+        ],
+        options: (lang, i) => {
+          if (i === 0) {
+            const runCmds = {
+              JavaScript: 'node',
+              Python: 'python',
+              C: 'gcc (compile) / ./a.out (run)',
+              'C++': 'g++ (compile) / ./a.out (run)',
+              'C#': 'dotnet',
+              Go: 'go run',
+              Rust: 'cargo run',
+              TypeScript: 'ts-node / tsc then node',
+              Kotlin: 'kotlinc / java',
+              Swift: 'swift',
+              PHP: 'php',
+              Ruby: 'ruby',
+              SQL: 'sql clients (psql/mysql)',
+              Bash: 'bash'
+            };
+            return [
+              { text: runCmds[lang] || 'toolchain command', correct: true },
+              { text: 'compile-only', correct: false },
+              { text: 'interpreted-only', correct: false }
+            ];
+          } else {
+            const exts = {
+              JavaScript: '.js',
+              Python: '.py',
+              C: '.c',
+              'C++': '.cpp',
+              'C#': '.cs',
+              Go: '.go',
+              Rust: '.rs',
+              TypeScript: '.ts',
+              Kotlin: '.kt',
+              Swift: '.swift',
+              PHP: '.php',
+              Ruby: '.rb',
+              SQL: '.sql',
+              Bash: '.sh'
+            };
+            return [
+              { text: exts[lang] || '.txt', correct: true },
+              { text: '.exe', correct: false },
+              { text: '.class', correct: false }
+            ];
+          }
+        }
+      }
+    ]
+  },
+
+  {
+    title: (lang) => `${lang} Syntax & Basics`,
+    description: (lang) => 'Variables, expressions, operators and basic syntax',
+    lessons: [
+      {
+        title: (lang) => 'Variables & Types',
+        questions: [
+          (lang) => `Which keyword (if any) is used to declare variables in ${lang}?`,
+          (lang) => `Which type system does ${lang} primarily use?`
+        ],
+        options: (lang, i) => {
+          if (i === 0) {
+            const decl = {
+              JavaScript: 'let / const / var',
+              Python: 'no keyword (assignment)',
+              C: 'type before name (int x)',
+              'C++': 'type before name',
+              'C#': 'type before name or var',
+              Go: 'var / :=',
+              Rust: 'let',
+              TypeScript: 'let / const / var',
+              Kotlin: 'var / val',
+              Swift: 'var / let',
+              PHP: '$',
+              Ruby: 'no keyword (assignment)',
+              SQL: 'N/A',
+              Bash: 'no (assignment)'
+            };
+            return [
+              { text: decl[lang] || 'language-specific', correct: true },
+              { text: 'let only', correct: false },
+              { text: 'var only', correct: false }
+            ];
+          } else {
+            const typing = {
+              JavaScript: 'Dynamic',
+              Python: 'Dynamic',
+              C: 'Static',
+              'C++': 'Static',
+              'C#': 'Static',
+              Go: 'Static',
+              Rust: 'Static',
+              TypeScript: 'Static (with annotations)',
+              Kotlin: 'Static',
+              Swift: 'Static',
+              PHP: 'Dynamic (gradually typed in newer versions)',
+              Ruby: 'Dynamic',
+              SQL: 'Declarative',
+              Bash: 'Dynamic'
+            };
+            return [
+              { text: typing[lang] || 'Static', correct: true },
+              { text: 'Dynamic', correct: typing[lang] === 'Dynamic' },
+              { text: 'Weakly typed', correct: false }
+            ];
+          }
+        }
+      },
+      {
+        title: (lang) => 'Expressions & Operators',
+        questions: [
+          (lang) => `Which operator is used for equality comparison in ${lang}?`,
+          (lang) => `Which operator increments a numeric value by 1 in ${lang}?`
+        ],
+        options: (lang, i) => {
+          if (i === 0) {
+            return [
+              { text: '== or ===', correct: lang === 'JavaScript' || lang === 'PHP' || lang === 'Ruby' || lang === 'Python' },
+              { text: '==', correct: lang !== 'JavaScript' && lang !== 'Python' ? true : false },
+              { text: '=', correct: false }
+            ];
+          } else {
+            return [
+              { text: '++', correct: ['C','C++','C#','JavaScript','PHP'].includes(lang) },
+              { text: '+= 1', correct: true },
+              { text: 'inc()', correct: false }
+            ];
+          }
+        }
+      }
+    ]
+  },
+
+  {
+    title: (lang) => `${lang} Control Flow`,
+    description: (lang) => 'Conditionals, branching and loops',
+    lessons: [
+      {
+        title: (lang) => 'Conditionals',
+        questions: [
+          (lang) => `Which construct is used for multi-branch selection in ${lang}?`,
+          (lang) => `Is ternary operator available in ${lang}?`
+        ],
+        options: (lang, i) => {
+          if (i === 0) {
+            return [
+              { text: 'if / else', correct: true },
+              { text: 'select-case only', correct: false },
+              { text: 'pattern-only', correct: false }
+            ];
+          } else {
+            const ternarySupported = !['SQL','Bash'].includes(lang);
+            return [
+              { text: ternarySupported ? 'Yes' : 'No', correct: true },
+              { text: 'No', correct: !ternarySupported },
+              { text: 'Only in newer versions', correct: false }
+            ];
+          }
+        }
+      },
+      {
+        title: (lang) => 'Loops & Iteration',
+        questions: [
+          (lang) => `Which loop is guaranteed to run at least once in ${lang}?`,
+          (lang) => `Which common construct iterates a collection in ${lang}?`
+        ],
+        options: (lang, i) => {
+          if (i === 0) {
+            return [
+              { text: 'do-while / until', correct: !['Python','SQL','Bash'].includes(lang) },
+              { text: 'for', correct: false },
+              { text: 'while', correct: false }
+            ];
+          } else {
+            return [
+              { text: 'for-each / enhanced for', correct: true },
+              { text: 'map only', correct: false },
+              { text: 'iterator not available', correct: false }
+            ];
+          }
+        }
+      }
+    ]
+  },
+
+  {
+    title: (lang) => `${lang} Practical`,
+    description: (lang) => 'I/O, tooling, and small practical tasks',
+    lessons: [
+      {
+        title: (lang) => 'Reading / Writing Data',
+        questions: [
+          (lang) => `Which API is used for file reading in ${lang}?`,
+          (lang) => `Which pattern helps auto-close resources (if applicable)?`
+        ],
+        options: (lang, i) => {
+          if (i === 0) {
+            return [
+              { text: 'Standard library I/O', correct: true },
+              { text: 'No I/O support', correct: false },
+              { text: 'Third-party only', correct: false }
+            ];
+          } else {
+            return [
+              { text: 'try-with-resources / context managers', correct: ['JavaScript','Python','Java','C#','Go','Rust'].includes(lang) || lang === 'Python' },
+              { text: 'manual close', correct: true },
+              { text: 'auto-close not needed', correct: false }
+            ];
+          }
+        }
+      },
+      {
+        title: (lang) => 'Mini Challenge',
+        questions: [
+          (lang) => `Which command builds or packages a ${lang} project?`,
+          (lang) => `Which package manager is commonly used with ${lang}?`
+        ],
+        options: (lang, i) => {
+          if (i === 0) {
+            const build = {
+              JavaScript: 'npm run build / webpack',
+              Python: 'python setup / pip/poetry builds',
+              C: 'make / gcc',
+              'C++': 'make / cmake',
+              'C#': 'dotnet build',
+              Go: 'go build',
+              Rust: 'cargo build',
+              TypeScript: 'tsc / build tools',
+              Kotlin: 'gradle / maven',
+              Swift: 'swift build / xcodebuild',
+              PHP: 'composer / build scripts',
+              Ruby: 'rake',
+              SQL: 'N/A',
+              Bash: 'N/A'
+            };
+            return [
+              { text: build[lang] || 'language build command', correct: true },
+              { text: 'no build needed', correct: false },
+              { text: 'use node always', correct: false }
+            ];
+          } else {
+            const pm = {
+              JavaScript: 'npm / yarn / pnpm',
+              Python: 'pip / poetry',
+              C: 'none specific (system package manager)',
+              'C++': 'none specific (vcpkg/conan sometimes)',
+              'C#': 'nuget',
+              Go: 'go modules',
+              Rust: 'cargo',
+              TypeScript: 'npm / yarn',
+              Kotlin: 'gradle / maven',
+              Swift: 'swift package manager / cocoapods',
+              PHP: 'composer',
+              Ruby: 'gem / bundler',
+              SQL: 'none',
+              Bash: 'none'
+            };
+            return [
+              { text: pm[lang] || 'system package manager', correct: true },
+              { text: 'apt-get only', correct: false },
+              { text: 'npm only', correct: false }
+            ];
+          }
+        }
+      }
+    ]
+  }
+];
+
+function slugify(str) {
+  return str.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+}
+
+function buildCoursePayload(lang) {
+  const id = `${slugify(lang)}-basics`;
+  const units = UNIT_TEMPLATES.map((unitTemplate, uIndex) => {
+    const unitTitle = unitTemplate.title(lang);
+    const unitDescription = unitTemplate.description(lang);
+    const lessons = unitTemplate.lessons.map((lessonTemplate, lIndex) => {
+      const lessonTitle = lessonTemplate.title(lang);
+      const challenges = lessonTemplate.questions.map((qFn, qIndex) => {
+        const questionText = qFn(lang);
+        const options = lessonTemplate.options(lang, qIndex);
+        // Normalize options array to objects { text, correct: boolean }
+        const optionsCreate = options.map(opt => ({
+          text: opt.text,
+          correct: !!opt.correct
+        }));
+        return {
+          type: ChallengeType.SELECT,
+          question: questionText,
+          order: qIndex + 1,
+          options: { create: optionsCreate }
+        };
+      });
+      return {
+        title: lessonTitle,
+        order: lIndex + 1,
+        challenges: { create: challenges }
+      };
+    });
+
+    return {
+      title: unitTitle,
+      description: unitDescription,
+      order: uIndex + 1,
+      lessons: { create: lessons }
+    };
+  });
+
+  return {
+    id,
+    name: `${lang} Basics`,
+    type: CourseType.LEARN,
+    units: { create: units }
+  };
+}
+
 async function main() {
   console.log('Start seeding ...')
 
-  await prisma.course.create({
-    data: {
-      id: "java-basics", 
-      name: "Java Basics",
-      type: "LEARN",
-      units: {
-        create: [
-          {
-            title: "Introduction to Java",
-            description: "Start your journey here",
-            order: 1,
-            lessons: {
-              create: [
-                {
-                  title: "Variables",
-                  order: 1,
-                  challenges: {
-                    create: [
-                      {
-                        type: "SELECT",
-                        question: "Which keyword creates a variable?",
-                        order: 1,
-                        options: {
-                          create: [
-                            { text: "var", correct: false },
-                            { text: "int", correct: true },
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    }
-  });
-  console.log('Java Basics course created.');
+  // await prisma.course.create({
+  //   data: {
+  //     id: "java-basics",
+  //     name: "Java Basics",
+  //     type: "LEARN",
+  //     units: {
+  //       create: [
+  //         // Unit 1: Introduction
+  //         {
+  //           title: "Introduction to Java",
+  //           description: "Start your journey here — history, setup, and Hello World",
+  //           order: 1,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "What is Java?",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which company originally developed Java?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Microsoft", correct: false },
+  //                           { text: "Sun Microsystems", correct: true },
+  //                           { text: "Apple", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Java is primarily known as a ____ language.",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Low-level", correct: false },
+  //                           { text: "High-level, object-oriented", correct: true },
+  //                           { text: "Assembly", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Setup & Tooling",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which tool compiles Java source files to bytecode?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "javac", correct: true },
+  //                           { text: "java", correct: false },
+  //                           { text: "javadoc", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which file extension is used for Java source files?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: ".class", correct: false },
+  //                           { text: ".java", correct: true },
+  //                           { text: ".jar", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "First Program: Hello World",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which method is the Java program entry point?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "start()", correct: false },
+  //                           { text: "main(String[] args)", correct: true },
+  //                           { text: "entry()", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which command runs compiled Java bytecode?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "java MyClass", correct: true },
+  //                           { text: "javac MyClass", correct: false },
+  //                           { text: "run MyClass", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
 
-  // 2. Create a dummy Forum Thread
-  // Note: You need a valid userId (authorId) here. 
-  // If you don't have a user, create one first or use an existing ID.
-  const user = await prisma.user.findFirst();
-  if (user) {
-    await prisma.forumThread.create({
-      data: {
-        title: "Welcome to the community!",
-        body: "Say hello to everyone here.",
-        authorId: user.id
-      }
+  //         // Unit 2: Syntax & Operators
+  //         {
+  //           title: "Java Syntax & Operators",
+  //           description: "Basic syntax, expressions, and operators",
+  //           order: 2,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "Statements and Blocks",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which symbol defines a code block in Java?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "()", correct: false },
+  //                           { text: "{}", correct: true },
+  //                           { text: "[]", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "What ends a Java statement?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: ":", correct: false },
+  //                           { text: ";", correct: true },
+  //                           { text: ".", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Operators",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which operator is used for equality comparison of primitives?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "=", correct: false },
+  //                           { text: "==", correct: true },
+  //                           { text: "equals()", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which operator increments a variable by one?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "++", correct: true },
+  //                           { text: "+=", correct: false },
+  //                           { text: "--", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Expressions & Type Conversion",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "What happens when you add an int and a double?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Result is int", correct: false },
+  //                           { text: "Result is double (widening)", correct: true },
+  //                           { text: "Compilation error", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which cast converts a double to an int?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "(int) value", correct: true },
+  //                           { text: "int(value)", correct: false },
+  //                           { text: "toInt(value)", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
+
+  //         // Unit 3: Data Types & Variables
+  //         {
+  //           title: "Data Types & Variables",
+  //           description: "Primitive types, reference types, and variable scope",
+  //           order: 3,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "Primitive Types",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which primitive type stores true/false?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "char", correct: false },
+  //                           { text: "boolean", correct: true },
+  //                           { text: "int", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which type is 64-bit floating point?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "float", correct: false },
+  //                           { text: "double", correct: true },
+  //                           { text: "long", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Reference Types & Strings",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which of the following is immutable in Java?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "String", correct: true },
+  //                           { text: "StringBuilder", correct: false },
+  //                           { text: "StringBuffer", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "How do you create an array of ints?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "int[] arr = new int[5];", correct: true },
+  //                           { text: "int arr = [5];", correct: false },
+  //                           { text: "int arr[] = {};", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Variable Scope & Lifetime",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "A static variable belongs to ____.",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "An instance", correct: false },
+  //                           { text: "The class", correct: true },
+  //                           { text: "A method only", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Where are local variables declared?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Inside a method or block", correct: true },
+  //                           { text: "At class level", correct: false },
+  //                           { text: "Only in constructors", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
+
+  //         // Unit 4: Control Flow
+  //         {
+  //           title: "Control Flow",
+  //           description: "Conditional statements and loops",
+  //           order: 4,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "If / Else",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which operator is used for ternary conditional?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "?:", correct: true },
+  //                           { text: "??", correct: false },
+  //                           { text: "->", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "What will `if (x = 5)` do in Java?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Assign 5 to x and compile", correct: false },
+  //                           { text: "Compilation error (cannot assign in if)", correct: true },
+  //                           { text: "Compare x to 5", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Switch",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which types are allowed in switch (Java 8)?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "int, char, String, enum", correct: true },
+  //                           { text: "double, float", correct: false },
+  //                           { text: "boolean only", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "What keyword stops execution in a case block?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "break", correct: true },
+  //                           { text: "return", correct: false },
+  //                           { text: "stop", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Loops (for, while, do-while)",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which loop executes body at least once?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "while", correct: false },
+  //                           { text: "do-while", correct: true },
+  //                           { text: "for", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which statement skips to next iteration?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "continue", correct: true },
+  //                           { text: "break", correct: false },
+  //                           { text: "skip", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
+
+  //         // Unit 5: Object-Oriented Programming
+  //         {
+  //           title: "Object-Oriented Programming (OOP)",
+  //           description: "Classes, objects, inheritance, polymorphism, encapsulation",
+  //           order: 5,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "Classes & Objects",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which keyword creates a new object instance?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "make", correct: false },
+  //                           { text: "new", correct: true },
+  //                           { text: "create", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "What is a constructor?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "A special method to initialize objects", correct: true },
+  //                           { text: "A static block", correct: false },
+  //                           { text: "A field type", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Inheritance & Polymorphism",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which keyword is used for inheritance?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "implements", correct: false },
+  //                           { text: "extends", correct: true },
+  //                           { text: "inherits", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which allows runtime method selection?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Static binding", correct: false },
+  //                           { text: "Dynamic dispatch (polymorphism)", correct: true },
+  //                           { text: "Generics", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Encapsulation & Access Modifiers",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which modifier makes a member visible only within its class?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "public", correct: false },
+  //                           { text: "private", correct: true },
+  //                           { text: "protected", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which keyword restricts inheritance for a class?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "final", correct: true },
+  //                           { text: "static", correct: false },
+  //                           { text: "abstract", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
+
+  //         // Unit 6: Collections & Generics
+  //         {
+  //           title: "Collections & Generics",
+  //           description: "List, Set, Map, and type-safe generics",
+  //           order: 6,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "List, Set, Map Basics",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which collection allows duplicate elements?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Set", correct: false },
+  //                           { text: "List", correct: true },
+  //                           { text: "Map", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which Map implementation is unordered?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "TreeMap", correct: false },
+  //                           { text: "HashMap", correct: true },
+  //                           { text: "LinkedHashMap", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Generics",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "What does List<String> indicate?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "List of Objects", correct: false },
+  //                           { text: "List of Strings (type-safe generics)", correct: true },
+  //                           { text: "List that converts items to String", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which wildcard allows any subtype of T?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "? extends T", correct: true },
+  //                           { text: "? super T", correct: false },
+  //                           { text: "? equals T", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Iteration & Streams (Intro)",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which loop is best for simple iteration?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "for-each (enhanced for)", correct: true },
+  //                           { text: "while with iterator", correct: false },
+  //                           { text: "do-while", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Streams support which style of operations?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Imperative only", correct: false },
+  //                           { text: "Functional (map/filter/reduce)", correct: true },
+  //                           { text: "SQL queries only", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
+
+  //         // Unit 7: Exceptions & I/O
+  //         {
+  //           title: "Exceptions & Input/Output",
+  //           description: "Handling errors and reading/writing files",
+  //           order: 7,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "Checked vs Unchecked Exceptions",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which exception must be declared or handled?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Unchecked (RuntimeException)", correct: false },
+  //                           { text: "Checked (IOException)", correct: true },
+  //                           { text: "Error", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which block always runs after try/catch?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "finally", correct: true },
+  //                           { text: "final", correct: false },
+  //                           { text: "always", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "File I/O Basics",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which statement auto-closes resources?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "try-with-resources", correct: true },
+  //                           { text: "try-finally", correct: false },
+  //                           { text: "auto-close", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which class reads text from a file efficiently?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "FileInputStream", correct: false },
+  //                           { text: "BufferedReader", correct: true },
+  //                           { text: "OutputStream", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Custom Exceptions & Best Practices",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which class should custom checked exceptions extend?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "RuntimeException", correct: false },
+  //                           { text: "Exception", correct: true },
+  //                           { text: "Error", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Is it good practice to use exceptions for flow control?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Yes, always", correct: false },
+  //                           { text: "No, avoid for normal flow", correct: true },
+  //                           { text: "Use only in constructors", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         },
+
+  //         // Unit 8: Concurrency & Threads
+  //         {
+  //           title: "Concurrency & Threads (Intro)",
+  //           description: "Threads, synchronization, and basic concurrent collections",
+  //           order: 8,
+  //           lessons: {
+  //             create: [
+  //               {
+  //                 title: "Threads & Runnable",
+  //                 order: 1,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which interface can be used to create a task for a Thread?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "Runnable", correct: true },
+  //                           { text: "CallableOnly", correct: false },
+  //                           { text: "Threadable", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which method starts a new thread?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "run()", correct: false },
+  //                           { text: "start()", correct: true },
+  //                           { text: "begin()", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Synchronization & Locks",
+  //                 order: 2,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which keyword enforces exclusive access to a block?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "lock", correct: false },
+  //                           { text: "synchronized", correct: true },
+  //                           { text: "atomic", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which prevents instruction reordering visibility issues?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "volatile", correct: true },
+  //                           { text: "transient", correct: false },
+  //                           { text: "final", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               },
+  //               {
+  //                 title: "Concurrent Collections & Executors",
+  //                 order: 3,
+  //                 challenges: {
+  //                   create: [
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which class helps manage a pool of threads?",
+  //                       order: 1,
+  //                       options: {
+  //                         create: [
+  //                           { text: "ThreadPoolExecutor / Executors", correct: true },
+  //                           { text: "ArrayList", correct: false },
+  //                           { text: "HashMap", correct: false }
+  //                         ]
+  //                       }
+  //                     },
+  //                     {
+  //                       type: "SELECT",
+  //                       question: "Which map implementation is thread-safe for concurrent access?",
+  //                       order: 2,
+  //                       options: {
+  //                         create: [
+  //                           { text: "HashMap", correct: false },
+  //                           { text: "ConcurrentHashMap", correct: true },
+  //                           { text: "TreeMap", correct: false }
+  //                         ]
+  //                       }
+  //                     }
+  //                   ]
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         }
+  //       ]
+  //     }
+  //   }
+  // });
+  // console.log('Java Basics course created.');
+
+  console.log('Seeding multiple language courses...');
+
+  for (const lang of LANGUAGES) {
+    const payload = buildCoursePayload(lang);
+    // Use upsert if you want idempotent seeds (avoid duplicates)
+    await prisma.course.upsert({
+      where: { id: payload.id },
+      update: { name: payload.name, type: payload.type }, // minimal update
+      create: { id: payload.id, name: payload.name, type: payload.type, units: payload.units }
     });
-    console.log('Forum thread created.');
-    
-    // 3. Create dummy Leaderboard data
-    await prisma.userProgress.create({
-      data: {
-        userId: user.id,
-        hearts: 5,
-        points: 150
-      }
-    });
-    console.log('User progress created.');
+    console.log(`Created/Updated course: ${payload.name}`);
   }
+
+  console.log('All courses seeded.');
+
+  // const user = await prisma.user.findFirst();
+  // if (user) {
+  //   await prisma.forumThread.create({
+  //     data: {
+  //       title: "Welcome to the community!",
+  //       body: "Say hello to everyone here.",
+  //       authorId: user.id
+  //     }
+  //   });
+  //   console.log('Forum thread created.');
+    
+  //   await prisma.userProgress.create({
+  //     data: {
+  //       userId: user.id,
+  //       hearts: 5,
+  //       points: 150
+  //     }
+  //   });
+  //   console.log('User progress created.');
+  // }
 
   // --- Create Courses, Branches, Semesters ---
   // We use createMany and skipDuplicates to avoid errors if data already exists
