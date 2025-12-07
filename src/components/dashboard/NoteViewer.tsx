@@ -81,6 +81,7 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
 
         // Fetch the PDF as a blob (avoid CORS/display issues)
         const pdfResp = await axios.get(url, { responseType: "blob" });
+        console.log("Response: ", pdfResp.data)
         createdObjectUrl = URL.createObjectURL(pdfResp.data);
 
         if (!cancelled) {
