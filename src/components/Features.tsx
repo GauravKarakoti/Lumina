@@ -12,6 +12,13 @@ import { useNavigate } from "react-router-dom";
 
 const features = [
   {
+    icon: GraduationCap,
+    title: "Tutorial",
+    description: "How to Use StudyFlow",
+    detail: "Resource integration",
+    extra: "Organize by subject"
+  },
+  {
     icon: Brain,
     title: "Learn with StudyFlow",
     description: "Flashcards & quizzes",
@@ -25,13 +32,6 @@ const features = [
     detail: "Turn your research",
     extra: "Tagging & search"
   },
-  {
-    icon: GraduationCap,
-    title: "Course Hub",
-    description: "Track progress",
-    detail: "Resource integration",
-    extra: "Organize by subject"
-  }
 ];
 
 const Features = () => {
