@@ -52,7 +52,7 @@ const Hero = () => {
       <div className="container mx-auto px-4 z-10 relative">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 animate-fade-in text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4 animate-bounce-slow hover:bg-primary/20 transition-colors cursor-default">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4 mt-7 animate-bounce-slow hover:bg-primary/20 transition-colors cursor-default">
               <Sparkles className="w-4 h-4 animate-spin-slow" />
               <span>Revolutionize your study routine</span>
             </div>
