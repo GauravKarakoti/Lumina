@@ -3,7 +3,7 @@ import team from "@/assets/Team.jpg";
 
 export default function Team() {
   return (
-    <section className="py-24 relative overflow-hidden">
+    <section className="pb-24 relative overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 space-y-4">
           <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
