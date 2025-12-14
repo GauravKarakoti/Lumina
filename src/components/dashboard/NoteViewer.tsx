@@ -280,7 +280,14 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
 
       <div className="flex items-center justify-between">
         <h2 className="my-0">{title}</h2>
-        <Button variant="ghost" size="icon" onClick={toggleFullScreen} title="Toggle Full Screen" className="cursor-pointer">
+        {/* Updated: Added 'hidden md:inline-flex' to hide on mobile */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleFullScreen} 
+          title="Toggle Full Screen" 
+          className="cursor-pointer hidden sm:inline-flex"
+        >
             <Maximize className="h-4 w-4" />
         </Button>
       </div>
