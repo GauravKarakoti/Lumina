@@ -12,6 +12,16 @@ router.get('/courses', async (req, res) => {
   res.json(courses)
 })
 
+router.get('/stats', async (req, res) => {
+  try {
+    const userCount = await prisma.user.count();
+    res.json({ userCount });
+  } catch (error) {
+    console.error('Failed to fetch stats:', error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+})
+
 // Get branches for a course
 router.get('/branches/:courseId', async (req, res) => {
   const { courseId } = req.params
