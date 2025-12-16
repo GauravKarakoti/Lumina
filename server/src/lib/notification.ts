@@ -6,7 +6,7 @@ import qrcode from 'qrcode-terminal';
 const prisma = new PrismaClient();
 
 // Initialize WhatsApp Client
-const client = new Client({
+export const client = new Client({
     authStrategy: new LocalAuth({ dataPath: './whatsapp-session' }),
     puppeteer: {
         args: [
@@ -38,8 +38,6 @@ client.on('ready', () => {
 client.on('auth_failure', (msg) => {
     console.error('❌ WhatsApp Authentication failure:', msg);
 });
-
-client.initialize();
 
 // Helper to send WhatsApp
 export const sendWhatsappMessage = async (to: string, body: string, mediaUrl?: string) => {

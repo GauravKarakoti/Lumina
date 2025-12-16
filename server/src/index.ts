@@ -14,6 +14,7 @@ import { startYouTubeWatcher } from './lib/youtubeWatcher.js'
 import learnRoutes from './routes/learn.js';
 import leaderboardRoutes from './routes/leaderboard.js';
 import forumRoutes from './routes/forum.js';
+import { client } from './lib/notification.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -41,6 +42,7 @@ app.use('/api/learn', checkAuth, learnRoutes);
 app.use('/api/leaderboard', checkAuth, leaderboardRoutes);
 app.use('/api/forum', checkAuth, forumRoutes);
 
+await client.initialize();
 startYouTubeWatcher();
 
 app.listen(port, () => {
