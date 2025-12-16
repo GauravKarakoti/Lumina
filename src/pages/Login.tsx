@@ -29,12 +29,33 @@ const Login = () => {
 
   const from = location.state?.from?.pathname || '/'
 
+  const validatePhone = (phone: string) => {
+    // Remove all spaces for checking
+    const cleaned = phone.replace(/\s/g, '');
+    if (!cleaned.startsWith('+91')) {
+        return "Number must start with +91";
+    }
+    if (cleaned.length !== 13) {
+        return "Number must be 10 digits after +91";
+    }
+    return null;
+  };
+
   const handleSendOtp = async () => {
+    const error = validatePhone(phoneNumber);
+    if (error) {
+        setError(error);
+        return;
+    }
+    
+    // Use cleaned number for API
+    const formattedPhone = phoneNumber.replace(/\s/g, '');
+
     setLoading(true);
     setError('');
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/send-otp`, { phoneNumber });
-      console.log(`OTP sent to ${phoneNumber}`);
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/send-otp`, { phoneNumber: formattedPhone });
+      console.log(`OTP sent to ${formattedPhone}`);
       setOtpSent(true);
     } catch (err) {
       setError('Failed to send OTP. Ensure number includes country code (e.g., +91...)');
@@ -46,10 +67,13 @@ const Login = () => {
   // Verify OTP Handler
   const handleMobileLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const formattedPhone = phoneNumber.replace(/\s/g, '');
+    
     setLoading(true);
     try {
       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-otp`, {
-        phoneNumber,
+        phoneNumber: formattedPhone,
         code: otp
       });
       auth.login(response.data.token, response.data.user);
@@ -172,7 +196,7 @@ const Login = () => {
             <TabsContent value="mobile">
               <form onSubmit={handleMobileLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>WhatsApp Number</Label>
+                  <Label>WhatsApp Number <span className="text-xs text-muted-foreground ml-2">(e.g., +919876543210)</span></Label>
                   <Input 
                     type="tel" 
                     placeholder="+919876543210" 
@@ -180,6 +204,7 @@ const Login = () => {
                     onChange={(e) => setPhoneNumber(e.target.value)} 
                     disabled={otpSent}
                   />
+                  {!otpSent && <p className="text-xs text-muted-foreground">Make sure to add country code and do not use spaces or dashes.</p>}
                 </div>
                 
                 {otpSent && (

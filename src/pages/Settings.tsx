@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
+import { Upload, X, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -22,16 +22,20 @@ const Settings = () => {
   const { user, token, updateUser, logout } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Phone Linking State
   const [linkPhone, setLinkPhone] = useState("");
-  const [linkOtp, setLinkOtp] = useState("");
-  const [isLinkingOtpSent, setIsLinkingOtpSent] = useState(false);
+  const [linkPhoneOtp, setLinkPhoneOtp] = useState("");
+  const [isPhoneOtpSent, setIsPhoneOtpSent] = useState(false);
+
+  // Email Linking State
   const [linkEmail, setLinkEmail] = useState("");
+  const [linkEmailOtp, setLinkEmailOtp] = useState("");
+  const [isEmailOtpSent, setIsEmailOtpSent] = useState(false);
 
   const [name, setName] = useState(user?.name || "");
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Password state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
@@ -40,32 +44,86 @@ const Settings = () => {
     if (user?.name) setName(user.name);
   }, [user]);
 
-  const handleSendLinkOtp = async () => {
-     try {
-       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/send-otp`, { phoneNumber: linkPhone });
-       setIsLinkingOtpSent(true);
-       toast.success("OTP sent to WhatsApp");
-     } catch (e) { toast.error("Failed to send OTP"); }
+  // --- Validation Helper ---
+  const validatePhone = (phone: string) => {
+    const cleaned = phone.replace(/\s/g, '');
+    if (!cleaned.startsWith('+91')) return "Phone must start with +91";
+    if (cleaned.length !== 13) return "Phone must be 10 digits after +91";
+    return null;
   };
 
-  const handleVerifyLinkPhone = async () => {
-     try {
-       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/link-phone`, { 
-         phoneNumber: linkPhone, 
-         code: linkOtp 
-       }, { headers: { Authorization: `Bearer ${token}` } });
-       toast.success("Phone linked!");
-       // Trigger user reload here if possible, or manually update local user state
-     } catch (e) { toast.error("Invalid OTP or Phone in use"); }
+  // --- Phone Handlers ---
+  const handleSendPhoneOtp = async () => {
+    const error = validatePhone(linkPhone);
+    if (error) { toast.error(error); return; }
+    
+    // Format: Remove spaces
+    const formattedPhone = linkPhone.replace(/\s/g, '');
+
+    try {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/send-otp`, { phoneNumber: formattedPhone });
+      setIsPhoneOtpSent(true);
+      toast.success("OTP sent to WhatsApp");
+    } catch (e: any) { toast.error(e.response?.data?.message || "Failed to send OTP"); }
   };
 
-  const handleLinkEmail = async () => {
+  const handleVerifyPhone = async () => {
+    const formattedPhone = linkPhone.replace(/\s/g, '');
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/link-phone`, { 
+        phoneNumber: formattedPhone, 
+        code: linkPhoneOtp 
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      updateUser(res.data.user);
+      setIsPhoneOtpSent(false);
+      setLinkPhone("");
+      setLinkPhoneOtp("");
+      toast.success("Phone linked!");
+    } catch (e: any) { toast.error(e.response?.data?.message || "Invalid OTP"); }
+  };
+
+  const handleUnlinkPhone = async () => {
+    try {
+        const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/unlink-phone`, {}, 
+        { headers: { Authorization: `Bearer ${token}` } });
+        updateUser(res.data.user);
+        toast.success("Phone unlinked");
+    } catch (e: any) { toast.error(e.response?.data?.message || "Failed to unlink"); }
+  };
+
+  // --- Email Handlers ---
+  const handleSendEmailOtp = async () => {
+      try {
+        await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/send-email-otp`, { email: linkEmail }, 
+        { headers: { Authorization: `Bearer ${token}` } });
+        setIsEmailOtpSent(true);
+        toast.success("OTP sent to your email");
+      } catch (e: any) { toast.error(e.response?.data?.message || "Failed to send OTP"); }
+  };
+
+  const handleVerifyEmail = async () => {
      try {
-       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/link-email`, { 
-         email: linkEmail
+       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/link-email`, { 
+         email: linkEmail,
+         code: linkEmailOtp
        }, { headers: { Authorization: `Bearer ${token}` } });
+       
+       updateUser(res.data.user);
+       setIsEmailOtpSent(false);
+       setLinkEmail("");
+       setLinkEmailOtp("");
        toast.success("Email linked!");
-     } catch (e) { toast.error("Email already in use"); }
+     } catch (e: any) { toast.error(e.response?.data?.message || "Verification failed"); }
+  };
+
+  const handleUnlinkEmail = async () => {
+    try {
+        const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/user/unlink-email`, {}, 
+        { headers: { Authorization: `Bearer ${token}` } });
+        updateUser(res.data.user);
+        toast.success("Email unlinked");
+    } catch (e: any) { toast.error(e.response?.data?.message || "Failed to unlink"); }
   };
 
   // Handle Text Profile Update
@@ -170,54 +228,77 @@ const Settings = () => {
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
 
-        {/* Profile Tab */}
         <TabsContent value="profile">
-          <div className="border-t py-4 mt-4 space-y-4">
-             <h3 className="text-lg font-medium">Contact Details</h3>
+          <div className="border rounded-lg p-6 bg-card mb-6 space-y-6">
+             <h3 className="text-lg font-medium">Account Connections</h3>
              
-             {/* Email Field */}
+             {/* Email Section */}
              <div className="grid gap-2">
-               <Label>Email</Label>
+               <Label>Email Address</Label>
                {user?.email ? (
-                 <Input value={user.email} disabled className="bg-muted" />
-               ) : (
-                 <div className="flex gap-2">
-                   <Input 
-                     placeholder="Add your email" 
-                     value={linkEmail} 
-                     onChange={e => setLinkEmail(e.target.value)} 
-                   />
-                   <Button onClick={handleLinkEmail}>Link</Button>
+                 <div className="flex items-center gap-2">
+                    <Input value={user.email} disabled className="bg-muted flex-1" />
+                    <Button variant="destructive" onClick={handleUnlinkEmail} size="icon" title="Unlink Email">
+                        <X className="h-4 w-4" />
+                    </Button>
                  </div>
-               )}
-             </div>
-
-             {/* Phone Field */}
-             <div className="grid gap-2">
-               <Label>WhatsApp Number</Label>
-               {user?.phoneNumber ? ( // Assuming you added phoneNumber to user context/type
-                 <Input value={user.phoneNumber} disabled className="bg-muted" />
                ) : (
                  <div className="space-y-2">
                     <div className="flex gap-2">
                        <Input 
-                         placeholder="+91..." 
-                         value={linkPhone} 
-                         onChange={e => setLinkPhone(e.target.value)} 
-                         disabled={isLinkingOtpSent}
+                         placeholder="name@example.com" 
+                         value={linkEmail} 
+                         onChange={e => setLinkEmail(e.target.value)} 
+                         disabled={isEmailOtpSent}
                        />
-                       {!isLinkingOtpSent && <Button onClick={handleSendLinkOtp}>Send OTP</Button>}
+                       {!isEmailOtpSent && <Button onClick={handleSendEmailOtp}>Send OTP</Button>}
                     </div>
-                    {isLinkingOtpSent && (
+                    {isEmailOtpSent && (
                       <div className="flex gap-2">
                         <Input 
-                          placeholder="OTP" 
-                          value={linkOtp} 
-                          onChange={e => setLinkOtp(e.target.value)} 
+                          placeholder="Enter OTP from Email" 
+                          value={linkEmailOtp} 
+                          onChange={e => setLinkEmailOtp(e.target.value)} 
                         />
-                        <Button onClick={handleVerifyLinkPhone}>Verify</Button>
+                        <Button onClick={handleVerifyEmail} variant="secondary">Verify</Button>
                       </div>
                     )}
+                 </div>
+               )}
+             </div>
+
+             {/* Phone Section */}
+             <div className="grid gap-2">
+               <Label>WhatsApp Number <span className="text-xs text-muted-foreground ml-2">(+91...)</span></Label>
+               {user?.phoneNumber ? (
+                 <div className="flex items-center gap-2">
+                    <Input value={user.phoneNumber} disabled className="bg-muted flex-1" />
+                    <Button variant="destructive" onClick={handleUnlinkPhone} size="icon" title="Unlink Phone">
+                        <X className="h-4 w-4" />
+                    </Button>
+                 </div>
+               ) : (
+                 <div className="space-y-2">
+                    <div className="flex gap-2">
+                       <Input 
+                         placeholder="+919876543210" 
+                         value={linkPhone} 
+                         onChange={e => setLinkPhone(e.target.value)} 
+                         disabled={isPhoneOtpSent}
+                       />
+                       {!isPhoneOtpSent && <Button onClick={handleSendPhoneOtp}>Send OTP</Button>}
+                    </div>
+                    {isPhoneOtpSent && (
+                       <div className="flex gap-2">
+                         <Input 
+                           placeholder="Enter OTP" 
+                           value={linkPhoneOtp} 
+                           onChange={e => setLinkPhoneOtp(e.target.value)} 
+                         />
+                         <Button onClick={handleVerifyPhone} variant="secondary">Verify</Button>
+                       </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">Ensure the number includes country code and has no spaces.</p>
                  </div>
                )}
              </div>

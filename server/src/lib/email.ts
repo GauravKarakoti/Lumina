@@ -19,3 +19,16 @@ export const sendResetPasswordEmail = async (email: string, token: string) => {
     `,
   });
 };
+
+export const sendVerificationEmail = async (email: string, code: string) => {
+  await resend.emails.send({
+    from: 'StudyFlow <onboarding@resend.dev>',
+    to: email,
+    subject: 'Verify your email',
+    html: `
+      <h1>Email Verification</h1>
+      <p>Your verification code is: <strong>${code}</strong></p>
+      <p>This code will expire in 10 minutes.</p>
+    `,
+  });
+};
