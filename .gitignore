@@ -12,7 +12,6 @@ dist
 dist-ssr
 *.local
 .wwebjs_cache
-whatsapp-session
 
 # Editor directories and files
 .vscode/*
