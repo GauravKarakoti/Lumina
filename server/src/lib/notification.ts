@@ -1,25 +1,70 @@
 import { PrismaClient } from '@prisma/client';
-import twilio from 'twilio';
+import pkg from 'whatsapp-web.js';
+const { Client, LocalAuth } = pkg;
+import qrcode from 'qrcode-terminal';
 
 const prisma = new PrismaClient();
 
-// Twilio Configuration
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-const WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_NUMBER; // e.g., 'whatsapp:+14155238886'
+// Initialize WhatsApp Client
+// LocalAuth stores your session so you don't have to scan QR every time
+const client = new Client({
+    authStrategy: new LocalAuth({ dataPath: './whatsapp-session' }),
+    puppeteer: {
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: true 
+    }
+});
+
+let isClientReady = false;
+
+client.on('qr', (qr) => {
+    console.log('SCAN THIS QR CODE WITH YOUR WHATSAPP:');
+    qrcode.generate(qr, { small: true });
+});
+
+client.on('ready', () => {
+    console.log('✅ WhatsApp Client is ready!');
+    isClientReady = true;
+});
+
+client.on('auth_failure', (msg) => {
+    console.error('❌ WhatsApp Authentication failure:', msg);
+});
+
+client.initialize();
 
 // Helper to send WhatsApp
 export const sendWhatsappMessage = async (to: string, body: string, mediaUrl?: string) => {
-  try {
-    await client.messages.create({
-      body,
-      from: WHATSAPP_FROM,
-      to: `whatsapp:${to}`,
-      mediaUrl: mediaUrl ? [mediaUrl] : undefined
-    });
-    console.log(`WhatsApp sent to ${to}`);
-  } catch (error) {
-    console.error(`Failed to send WhatsApp to ${to}:`, error);
-  }
+    if (!isClientReady) {
+        console.log('⚠️ WhatsApp client not ready yet. Skipping message.');
+        return;
+    }
+
+    try {
+        // WhatsApp Web expects numbers in format '1234567890@c.us'
+        // Remove '+' and any non-numeric chars
+        const sanitizedNumber = to.replace(/[^0-9]/g, '');
+        const chatId = `${sanitizedNumber}@c.us`;
+        console.log(`Sending WhatsApp to ${to} (chatId: ${chatId})`);
+
+        // Check if number is registered on WhatsApp
+        const isRegistered = await client.isRegisteredUser(chatId);
+        if (!isRegistered) {
+            console.log(`⚠️ User ${to} is not registered on WhatsApp.`);
+            return;
+        }
+        console.log(`User ${to} is registered on WhatsApp.`);
+
+        await client.sendMessage(chatId, body);
+        
+        // Note: sending media via URL requires extra steps (fetching buffer), 
+        // for simplicity we are sending just text + link for now.
+        // If you need images, you'd use MessageMedia.fromUrl(mediaUrl)
+        
+        console.log(`WhatsApp sent to ${to}`);
+    } catch (error) {
+        console.error(`Failed to send WhatsApp to ${to}:`, error);
+    }
 };
 
 export const sendNotification = async (
@@ -30,7 +75,7 @@ export const sendNotification = async (
 ) => {
   try {
     // Save to DB
-    const notification = await prisma.notification.create({
+    await prisma.notification.create({
       data: { userId, message, link, imageUrl, type: "INFO" },
     });
 
@@ -52,7 +97,6 @@ export const broadcastNotification = async (
   imageUrl?: string
 ) => {
   try {
-    // Fetch users with IDs and Phone Numbers
     const users = await prisma.user.findMany({
       select: { id: true, phoneNumber: true }
     });
@@ -76,12 +120,14 @@ export const broadcastNotification = async (
     // 2. Send WhatsApp Broadcast
     const whatsappBody = `📢 New Update: ${message}\nWatch here: ${link}`;
     
-    // Process in parallel (batches recommended for production)
-    users.forEach(user => {
+    // Process strictly sequentially to avoid ban/rate limits
+    for (const user of users) {
       if (user.phoneNumber) {
-        sendWhatsappMessage(user.phoneNumber, whatsappBody, imageUrl);
+        await sendWhatsappMessage(user.phoneNumber, whatsappBody, imageUrl);
+        // Wait 2-5 seconds between messages to be safe
+        await new Promise(r => setTimeout(r, 2000)); 
       }
-    });
+    }
 
     console.log(`Broadcast sent to ${users.length} users.`);
   } catch (error) {

@@ -33,7 +33,7 @@ const Signup = () => {
       });
       
       auth.login(response.data.token, response.data.user);
-      navigate('/select-course');
+      navigate('/');
     } catch (err) {
       console.error(err);
       setError('Google Sign-up failed. Please try again.');
@@ -59,7 +59,7 @@ const Signup = () => {
         password,
       })
       auth.login(response.data.token, response.data.user)
-      navigate('/select-course') 
+      navigate('/') 
     } catch (err: any) {
       setIsLoading(false)
       if (err.response?.data?.message) {
