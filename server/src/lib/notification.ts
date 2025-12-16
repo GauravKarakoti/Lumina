@@ -1,71 +1,81 @@
 import { PrismaClient } from '@prisma/client';
-import pkg from 'whatsapp-web.js';
-const { Client, LocalAuth } = pkg;
-import qrcode from 'qrcode-terminal';
+import makeWASocket, { 
+    useMultiFileAuthState, 
+    DisconnectReason,
+    fetchLatestBaileysVersion
+} from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
+import pino from 'pino';
+import qrcode from 'qrcode-terminal'; // <--- Import this
 
 const prisma = new PrismaClient();
 
+// Global variable to store the socket connection
+let sock: any;
+
 // Initialize WhatsApp Client
-export const client = new Client({
-    authStrategy: new LocalAuth({ dataPath: './whatsapp-session' }),
-    puppeteer: {
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage', // <--- CRITICAL for Render/Docker
-            '--disable-gpu'            // <--- Recommended for headless environments
-        ],
-        headless: true 
-    }
-});
+export const initializeWhatsApp = async () => {
+    const { state, saveCreds } = await useMultiFileAuthState('whatsapp-session');
+    const { version } = await fetchLatestBaileysVersion();
 
-let isClientReady = false;
+    sock = makeWASocket({
+        version,
+        logger: pino({ level: 'silent' }), 
+        auth: state,
+        browser: ['StudyFlow', 'Chrome', '10.0'],
+        generateHighQualityLinkPreview: true,
+    });
 
-client.on('qr', (qr) => {
-    // 1. Log the raw string as a fallback (Copy this if the image fails)
-    console.log('QR RAW DATA:', qr); 
-    
-    // 2. Generate the terminal image
-    console.log('SCAN THIS QR CODE WITH YOUR WHATSAPP:');
-    qrcode.generate(qr, { small: true });
-});
+    sock.ev.on('creds.update', saveCreds);
 
-client.on('ready', () => {
-    console.log('✅ WhatsApp Client is ready!');
-    isClientReady = true;
-});
+    sock.ev.on('connection.update', (update: any) => {
+        const { connection, lastDisconnect, qr } = update;
 
-client.on('auth_failure', (msg) => {
-    console.error('❌ WhatsApp Authentication failure:', msg);
-});
+        // 1. Handle QR Code manually
+        if (qr) {
+            console.log('SCAN THIS QR CODE WITH YOUR WHATSAPP:');
+            qrcode.generate(qr, { small: true });
+        }
+
+        // 2. Handle Connection State
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+            console.log('❌ Connection closed due to ', lastDisconnect?.error, ', reconnecting ', shouldReconnect);
+            
+            if (shouldReconnect) {
+                initializeWhatsApp();
+            }
+        } else if (connection === 'open') {
+            console.log('✅ WhatsApp Client is ready!');
+        }
+    });
+};
 
 // Helper to send WhatsApp
 export const sendWhatsappMessage = async (to: string, body: string, mediaUrl?: string) => {
-    if (!isClientReady) {
-        console.log('⚠️ WhatsApp client not ready yet. Skipping message.');
+    if (!sock) {
+        console.log('⚠️ WhatsApp client not initialized yet. Skipping message.');
         return;
     }
 
     try {
-        // WhatsApp Web expects numbers in format '1234567890@c.us'
-        // Remove '+' and any non-numeric chars
         const sanitizedNumber = to.replace(/[^0-9]/g, '');
-        const chatId = `${sanitizedNumber}@c.us`;
-        console.log(`Sending WhatsApp to ${to} (chatId: ${chatId})`);
+        const jid = `${sanitizedNumber}@s.whatsapp.net`;
+        
+        console.log(`Sending WhatsApp to ${to} (JID: ${jid})`);
 
-        // Check if number is registered on WhatsApp
-        const isRegistered = await client.isRegisteredUser(chatId);
-        if (!isRegistered) {
+        const [result] = await sock.onWhatsApp(jid);
+        
+        if (!result?.exists) {
             console.log(`⚠️ User ${to} is not registered on WhatsApp.`);
             return;
         }
+        
         console.log(`User ${to} is registered on WhatsApp.`);
 
-        await client.sendMessage(chatId, body);
-        
-        // Note: sending media via URL requires extra steps (fetching buffer), 
-        // for simplicity we are sending just text + link for now.
-        // If you need images, you'd use MessageMedia.fromUrl(mediaUrl)
+        await sock.sendMessage(jid, { 
+            text: body 
+        });
         
         console.log(`WhatsApp sent to ${to}`);
     } catch (error) {
@@ -80,12 +90,10 @@ export const sendNotification = async (
   imageUrl?: string
 ) => {
   try {
-    // Save to DB
     await prisma.notification.create({
       data: { userId, message, link, imageUrl, type: "INFO" },
     });
 
-    // Send WhatsApp if user has phone number
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (user?.phoneNumber) {
       const whatsappBody = `${message}\n${link ? `Link: ${link}` : ''}`;
@@ -109,7 +117,6 @@ export const broadcastNotification = async (
 
     if (users.length === 0) return;
 
-    // 1. Create DB Notifications
     const notifications = users.map(user => ({
       userId: user.id,
       message,
@@ -123,14 +130,11 @@ export const broadcastNotification = async (
       data: notifications
     });
 
-    // 2. Send WhatsApp Broadcast
     const whatsappBody = `📢 New Update: ${message}\nWatch here: ${link}`;
     
-    // Process strictly sequentially to avoid ban/rate limits
     for (const user of users) {
       if (user.phoneNumber) {
         await sendWhatsappMessage(user.phoneNumber, whatsappBody, imageUrl);
-        // Wait 2-5 seconds between messages to be safe
         await new Promise(r => setTimeout(r, 2000)); 
       }
     }
