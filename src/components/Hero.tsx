@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/cosmic-hero.jpg";
+// Make sure to add this video file to your assets folder
+import heroVideo from "@/assets/hero-video.mp4"; 
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import HeroBackground from "./HeroBackground";
 import HeroParticles from "./HeroParticles";
 
@@ -11,6 +13,8 @@ const Hero = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
   const [typingSpeed, setTypingSpeed] = useState(150);
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const phrases = [
     "Unlock Your Potential",
@@ -43,6 +47,13 @@ const Hero = () => {
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
   }, [text, isDeleting, loopNum, typingSpeed, phrases]);
+
+  const handleMouseEnter = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0; // Reset to start
+      videoRef.current.play(); // Play once
+    }
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden bg-background">
@@ -106,12 +117,17 @@ const Hero = () => {
 
           <div className="relative animate-scale-in mt-10 lg:mt-0 group perspective-1000">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-[2rem] blur-2xl opacity-30 group-hover:opacity-70 transition duration-1000 animate-pulse" />
-            <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl transform transition-transform duration-500 hover:scale-[1.02] hover:rotate-1 bg-card/50 backdrop-blur-sm">
+            <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl transform transition-transform duration-500 hover:scale-[1.02] bg-card/50 backdrop-blur-sm">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent z-10 pointer-events-none mix-blend-overlay" />
-              <img
-                src={heroImage}
-                alt="Cosmic learning environment"
-                className="w-full h-auto object-cover hover:scale-110 transition-transform duration-[2s]"
+              {/* Replaced Image with Video */}
+              <video
+                ref={videoRef}
+                src={heroVideo}
+                poster={heroImage}
+                muted
+                playsInline
+                onMouseEnter={handleMouseEnter}
+                className="w-full h-auto object-cover transition-transform duration-[2s]"
               />
             </div>
           </div>
