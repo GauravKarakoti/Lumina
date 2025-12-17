@@ -22,8 +22,17 @@ class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
 
+    const errorMessage = error.message.toLowerCase();
+
     // Auto-reload logic for ChunkLoadErrors (updates or network hiccups)
-    if (error.message.includes("Loading chunk") || error.message.includes("Importing a module script failed")) {
+    // We check for various browser-specific error messages indicating a missing file
+    if (
+      errorMessage.includes("loading chunk") ||
+      errorMessage.includes("importing a module script failed") ||
+      errorMessage.includes("failed to fetch dynamically imported module") ||
+      errorMessage.includes("error loading dynamically imported module")
+    ) {
+       // Ideally, we want to reload the page to fetch the new fresh chunks
        window.location.reload();
     }
   }
