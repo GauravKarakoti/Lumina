@@ -117,7 +117,7 @@ const Hero = () => {
 
           <div className="relative animate-scale-in mt-10 lg:mt-0 group perspective-1000">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-accent rounded-[2rem] blur-2xl opacity-30 group-hover:opacity-70 transition duration-1000 animate-pulse" />
-            <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl transform transition-transform duration-500 hover:scale-[1.02] bg-card/50 backdrop-blur-sm">
+            <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl mb-4 transform transition-transform duration-500 hover:scale-[1.02] bg-card/50 backdrop-blur-sm">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent z-10 pointer-events-none mix-blend-overlay" />
               {/* Replaced Image with Video */}
               <video
