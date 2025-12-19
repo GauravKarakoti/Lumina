@@ -138,18 +138,24 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     return () => resizeObserver.disconnect();
   }, [isUrlLoading, isFullScreen]); 
 
-  // Improve scrolling when fullscreen
   useEffect(() => {
     if (!isFullScreen) return;
 
     const el = containerRef.current;
     if (!el) return;
 
-    // Focus optimization: Only focus if not on a touch device to avoid virtual keyboard glitches
-    // or weird scroll jumps.
-    if (window.matchMedia("(pointer: fine)").matches) {
-       el.focus({ preventScroll: true });
-    }
+    el.focus({ preventScroll: true });
+
+    const onWheel = (e: WheelEvent) => {
+      // allow normal wheel behavior, just stop propagation if needed
+      e.stopPropagation();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: true, capture: true });
+
+    return () => {
+      el.removeEventListener("wheel", onWheel, true);
+    };
   }, [isFullScreen]);
 
   if (isUrlLoading) {
