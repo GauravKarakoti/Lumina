@@ -127,7 +127,6 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        // contentRect.width excludes padding, so it represents the actual available space for the PDF
         const width = entry.contentRect.width;
         if (width > 0) {
            setContainerWidth(width); 
@@ -136,30 +135,21 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     });
 
     resizeObserver.observe(element);
-    
-    // Initial fallback is less critical with ResizeObserver, but if needed we rely on the observer firing.
     return () => resizeObserver.disconnect();
   }, [isUrlLoading, isFullScreen]); 
 
-  // Improve touchpad/wheel scrolling when fullscreen
+  // Improve scrolling when fullscreen
   useEffect(() => {
     if (!isFullScreen) return;
 
     const el = containerRef.current;
     if (!el) return;
 
-    el.focus({ preventScroll: true });
-
-    const onWheel = (e: WheelEvent) => {
-      // allow normal wheel behavior, just stop propagation if needed
-      e.stopPropagation();
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: true, capture: true });
-
-    return () => {
-      el.removeEventListener("wheel", onWheel, true);
-    };
+    // Focus optimization: Only focus if not on a touch device to avoid virtual keyboard glitches
+    // or weird scroll jumps.
+    if (window.matchMedia("(pointer: fine)").matches) {
+       el.focus({ preventScroll: true });
+    }
   }, [isFullScreen]);
 
   if (isUrlLoading) {
@@ -211,14 +201,13 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
   if (isFullScreen) {
     return createPortal(
       <div
-        // Use h-[100dvh] for mobile browser address bar compatibility
         className="fixed inset-0 z-[100] bg-background flex flex-col h-[100dvh] w-screen pointer-events-auto"
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
         <div className="flex-none h-14 flex items-center justify-between px-4 md:px-6 border-b bg-background z-[110] shadow-sm pointer-events-auto">
-          {/* Hide title on mobile to provide cleaner "only pdf" view */}
+          {/* Hide title on mobile */}
           <h2 className="text-lg font-semibold truncate pr-4 hidden md:block">{title}</h2>
           
           <Button
@@ -235,12 +224,12 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
         {/* Scrollable Content */}
         <div
           ref={containerRef}
-          // Responsive padding: smaller (p-2) on mobile, larger (p-6) on desktop
           className="flex-1 overflow-y-auto p-2 md:p-6 w-full bg-gray-100/50 dark:bg-gray-900/50 pdf-fullscreen-scroll"
           tabIndex={0}
+          // The critical mobile scroll fixes:
           style={{
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y", // Explicitly allow vertical panning/scrolling
+            touchAction: "pan-y",
           }}
         >
           <div className="min-h-full flex flex-col items-center pb-20 pointer-events-auto">
@@ -256,16 +245,14 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
   return (
     <article className="prose dark:prose-invert max-w-none w-full mb-8">
       <style>{`
-        .react-pdf__Page__canvas {
+        /* Crucial fix for mobile scrolling: Force touch-action on the canvas */
+        .react-pdf__Page__canvas, .react-pdf__Page {
+          touch-action: pan-y !important;
           pointer-events: auto !important;
           max-width: 100% !important;
           height: auto !important;
           display: block;
           margin: 0 auto;
-        }
-
-        .react-pdf__Page {
-          pointer-events: auto !important;
         }
 
         .pdf-fullscreen-scroll {
@@ -275,7 +262,6 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
 
       <div className="flex items-center justify-between">
         <h2 className="my-0">{title}</h2>
-        {/* Updated: Button is now visible on all screens */}
         <Button 
           variant="ghost" 
           size="icon" 
