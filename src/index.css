@@ -172,3 +172,20 @@
     transform: translateY(-2px);
   }
 }
+
+.react-pdf__Page__canvas,
+.react-pdf__Page {
+  touch-action: pan-y !important;
+  pointer-events: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ensure smooth native momentum scrolling on iOS */
+.pdf-fullscreen-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}

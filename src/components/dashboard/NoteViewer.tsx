@@ -250,22 +250,6 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
   // Default render
   return (
     <article className="prose dark:prose-invert max-w-none w-full mb-8">
-      <style>{`
-        /* Crucial fix for mobile scrolling: Force touch-action on the canvas */
-        .react-pdf__Page__canvas, .react-pdf__Page {
-          touch-action: pan-y !important;
-          pointer-events: auto !important;
-          max-width: 100% !important;
-          height: auto !important;
-          display: block;
-          margin: 0 auto;
-        }
-
-        .pdf-fullscreen-scroll {
-          overscroll-behavior: contain;
-        }
-      `}</style>
-
       <div className="flex items-center justify-between">
         <h2 className="my-0">{title}</h2>
         <Button 
