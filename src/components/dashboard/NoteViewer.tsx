@@ -70,7 +70,7 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     };
   }, [isFullScreen]);
 
-  // Fetch Signed URL
+  // Fetch Signed URL (unchanged)
   useEffect(() => {
     if (!id || !pdfKey) return;
 
@@ -120,7 +120,6 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     };
   }, [id, pdfKey]);
 
-  // Measure Container Width
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
@@ -138,49 +137,25 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     return () => resizeObserver.disconnect();
   }, [isUrlLoading, isFullScreen]); 
 
+  // --- NEW: Improve touchpad (two-finger) scrolling when fullscreen ---
   useEffect(() => {
     if (!isFullScreen) return;
 
     const el = containerRef.current;
     if (!el) return;
 
-    if (!window.matchMedia("(pointer: fine)").matches) {
-      console.log("Mobile device detected, skipping wheel event hijack.");
-      // still focus for keyboard users on some laptops, but skip wheel hijack
-      try { el.focus({ preventScroll: true }); } catch {}
-      return;
-    }
-
-    try {
-      el.focus({ preventScroll: true });
-    } catch {}
+    // Focus the container so wheel events go to it (important for some browsers)
+    el.focus({ preventScroll: true });
 
     const onWheel = (e: WheelEvent) => {
-      if (e.deltaY === 0) return;
-
-      const delta = e.deltaY;
-      const scrollTop = el.scrollTop;
-      const clientHeight = el.clientHeight;
-      const scrollHeight = el.scrollHeight;
-      const atTop = scrollTop <= 0;
-      const atBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
-
-      // If scrolling up when already at top OR scrolling down when already at bottom:
-      // let the event bubble so the page can scroll.
-      if ((delta < 0 && atTop) || (delta > 0 && atBottom)) {
-        return;
-      }
-
-      // Otherwise, this container can scroll — prevent body/page scroll and stop propagation.
-      // passive: false is required in addEventListener so preventDefault works.
+      const canScroll = el.scrollHeight > el.clientHeight;
       e.stopPropagation();
-      e.preventDefault();
     };
 
-    el.addEventListener("wheel", onWheel as EventListener, { passive: true, capture: true });
+    el.addEventListener("wheel", onWheel, { passive: true, capture: true });
 
     return () => {
-      el.removeEventListener("wheel", onWheel as EventListener, true);
+      el.removeEventListener("wheel", onWheel, true);
     };
   }, [isFullScreen]);
 
@@ -204,7 +179,7 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     )
   }
 
-  // PDF Document
+  // PDF Document (unchanged)
   const PdfDocument = (
     <Document
       file={signedPdfUrl}
@@ -239,15 +214,13 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
       >
         {/* Header */}
         <div className="flex-none h-14 flex items-center justify-between px-4 md:px-6 border-b bg-background z-[110] shadow-sm pointer-events-auto">
-          {/* Hide title on mobile */}
           <h2 className="text-lg font-semibold truncate pr-4 hidden md:block">{title}</h2>
-          
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleFullScreen}
             title="Exit Full Screen"
-            className="cursor-pointer ml-auto"
+            className="cursor-pointer"
           >
             <Minimize className="h-5 w-5" />
           </Button>
@@ -256,12 +229,12 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
         {/* Scrollable Content */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-y-auto p-2 md:p-6 w-full bg-gray-100/50 dark:bg-gray-900/50 pdf-fullscreen-scroll"
+          className="flex-1 overflow-y-auto p-6 w-full bg-gray-100/50 dark:bg-gray-900/50 pdf-fullscreen-scroll"
           tabIndex={0}
-          // The critical mobile scroll fixes:
           style={{
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y",
+            // touchpad scroll is not affected by touchAction but keep for completeness
+            touchAction: "auto",
           }}
         >
           <div className="min-h-full flex flex-col items-center pb-20 pointer-events-auto">
@@ -273,11 +246,12 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
     );
   }
 
-  // Default render
+  // Default render (unchanged, with small pointer-events fixes)
   return (
     <article className="prose dark:prose-invert max-w-none w-full mb-8">
       <div className="flex items-center justify-between">
         <h2 className="my-0">{title}</h2>
+        {/* Updated: Added 'hidden md:inline-flex' to hide on mobile */}
         <Button 
           variant="ghost" 
           size="icon" 

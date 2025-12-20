@@ -173,9 +173,7 @@
   }
 }
 
-.react-pdf__Page__canvas,
-.react-pdf__Page {
-  touch-action: pan-y !important;
+.react-pdf__Page__canvas {
   pointer-events: auto !important;
   max-width: 100% !important;
   height: auto !important;
@@ -183,9 +181,11 @@
   margin: 0 auto;
 }
 
-/* ensure smooth native momentum scrolling on iOS */
+.react-pdf__Page {
+  pointer-events: auto !important;
+}
+
+/* New: keep scroll inside the viewer (prevents scroll chaining) */
 .pdf-fullscreen-scroll {
-  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  touch-action: pan-y;
 }
