@@ -257,7 +257,7 @@ const PdfViewer = ({ id, title, pdfKey }: PdfViewerComponentProps) => {
           size="icon" 
           onClick={toggleFullScreen} 
           title="Toggle Full Screen" 
-          className="cursor-pointer"
+          className="cursor-pointer hidden sm:block"
         >
             <Maximize className="h-4 w-4" />
         </Button>
