@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Settings, LogOut, Sun, Moon, Search } from "lucide-react"; 
 import { useState, useEffect } from "react";
 import { NotificationBell } from "./NotificationBell";
-import { GlobalSearch } from "./GlobalSearch"; // Import the new component
+import { GlobalSearch } from "./GlobalSearch"; 
 
 import {
   Popover,
@@ -27,21 +27,17 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [searchOpen, setSearchOpen] = useState(false); // State for search dialog
+  const [searchOpen, setSearchOpen] = useState(false); 
   
-  // State for onboarding popup
   const [showProfileHint, setShowProfileHint] = useState(false);
 
-  // Check for signup redirect
   useEffect(() => {
     if (location.state?.showProfileSetup) {
       setShowProfileHint(true);
-      // Clear state so it doesn't persist on refresh
       window.history.replaceState({}, document.title);
     }
   }, [location]);
   
-  // Initialize theme from localStorage or default to dark
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme") as
       | "light"
@@ -61,8 +57,6 @@ const Header = () => {
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-
-    // Persist to localStorage
     localStorage.setItem("theme", newTheme);
 
     if (newTheme === "dark") {
@@ -74,7 +68,6 @@ const Header = () => {
 
   return (
     <>
-      {/* Global Search Dialog Component */}
       <GlobalSearch open={searchOpen} setOpen={setSearchOpen} />
 
       <header className="fixed top-0 left-0 right-0 z-50 flex flex-col">
@@ -83,12 +76,12 @@ const Header = () => {
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-2">
                 <img src="/Logo.PNG" alt="Logo" className="h-16 w-auto" />
-                <span className="text-2xl font-bold text-glow">STUDYFLOW</span>
+                {/* Changed: Added 'hidden sm:block' to hide text on mobile */}
+                <span className="text-2xl font-bold text-glow hidden sm:block">STUDYFLOW</span>
               </Link>
 
               <div className="flex items-center gap-4">
                 
-                {/* Search Button */}
                 <Button
                   variant="ghost"
                   size="icon"
