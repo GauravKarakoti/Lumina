@@ -4,37 +4,29 @@
 
 @layer base {
   :root {
-    /* Improvised Light Theme Configuration
-       Base: Clean Cosmic White -> HSL(270, 30%, 98%)
-       Contrast: Void Purple -> HSL(270, 60%, 10%)
-    */
-    --background: 270 30% 98%; /* Whiter, cleaner canvas */
-    --foreground: 270 60% 10%; /* Darker text for crisp readability */
+    /* --background: 270 30% 98%;
+    --foreground: 270 60% 10%;
 
-    --card: 0 0% 100%; /* Pure white cards for better depth */
+    --card: 0 0% 100%;
     --card-foreground: 270 60% 15%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 270 60% 15%;
 
-    /* Richer Electric Purple */
     --primary: 270 90% 52%; 
     --primary-foreground: 0 0% 100%;
 
-    /* Deep Vibrant Orchid - Improved contrast for white text */
     --secondary: 310 85% 60%; 
     --secondary-foreground: 0 0% 100%;
 
-    /* Cool neutral tones with a hint of purple */
     --muted: 270 20% 96%;
     --muted-foreground: 270 10% 45%;
 
-    /* Sharper Blue-Purple Accent */
     --accent: 250 85% 65%; 
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 98%; */
 
     --border: 270 15% 92%; /* Subtle borders */
     --input: 270 15% 92%;
@@ -42,23 +34,22 @@
 
     --radius: 1rem;
 
-    /* Updated Gradients for smoother flow */
-    --gradient-start: 270 90% 52%;
+    /* --gradient-start: 270 90% 52%;
     --gradient-mid: 310 85% 60%;
     --gradient-end: 250 85% 65%;
     
-    /* Cosmic tokens */
     --cosmic-glow: 270 90% 52%; 
     --cosmic-deep: 270 30% 98%;
     --cosmic-mid: 0 0% 100%;
 
-    --glow-strength: 0.15; /* Slightly increased for better visibility */
-    --glow-shadow: 25px;
+    --glow-strength: 0.15;
+    --glow-shadow: 25px; */
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .dark {
+  /* .dark { */
+  :root {
     /* Spiced Up Cosmic Dark Theme */
     --background: 265 60% 8%;  /* Deep Void Purple */
     --foreground: 280 20% 95%;

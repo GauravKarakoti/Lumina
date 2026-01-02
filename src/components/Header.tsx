@@ -10,7 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Settings, LogOut, Sun, Moon, Search } from "lucide-react"; 
+import { 
+  Settings, LogOut,
+  // Sun, Moon,
+  Search 
+} from "lucide-react"; 
 import { useState, useEffect } from "react";
 import { NotificationBell } from "./NotificationBell";
 import { GlobalSearch } from "./GlobalSearch"; 
@@ -26,7 +30,7 @@ const Header = () => {
   const { isAuthenticated, isAdmin, logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  // const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [searchOpen, setSearchOpen] = useState(false); 
   
   const [showProfileHint, setShowProfileHint] = useState(false);
@@ -38,33 +42,33 @@ const Header = () => {
     }
   }, [location]);
   
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme") as
-      | "light"
-      | "dark"
-      | null;
+  // useEffect(() => {
+  //   const storedTheme = localStorage.getItem("theme") as
+  //     | "light"
+  //     | "dark"
+  //     | null;
     
-    const initialTheme = storedTheme || "dark";
+  //   const initialTheme = storedTheme || "dark";
 
-    setTheme(initialTheme);
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+  //   setTheme(initialTheme);
+  //   if (initialTheme === "dark") {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  // }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+  // const toggleTheme = () => {
+  //   const newTheme = theme === "light" ? "dark" : "light";
+  //   setTheme(newTheme);
+  //   localStorage.setItem("theme", newTheme);
 
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
+  //   if (newTheme === "dark") {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  // };
 
   return (
     <>
@@ -158,7 +162,7 @@ const Header = () => {
                                 <span>Settings</span>
                               </DropdownMenuItem>
 
-                              <DropdownMenuItem
+                              {/* <DropdownMenuItem
                                 onClick={toggleTheme}
                                 className="cursor-pointer focus:bg-primary/20"
                               >
@@ -170,7 +174,7 @@ const Header = () => {
                                 <span>
                                   {theme === "light" ? "Dark Mode" : "Light Mode"}
                                 </span>
-                              </DropdownMenuItem>
+                              </DropdownMenuItem> */}
 
                               <DropdownMenuSeparator className="bg-border/50" />
 

@@ -51,15 +51,15 @@ const queryClient = new QueryClient();
 
 const App = () => {
   // Added global theme initialization
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme");
-    // Default to dark if no preference is stored or if it is 'dark'
-    if (!storedTheme || storedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+  // useEffect(() => {
+  //   const storedTheme = localStorage.getItem("theme");
+  //   // Default to dark if no preference is stored or if it is 'dark'
+  //   if (!storedTheme || storedTheme === "dark") {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  // }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
