@@ -17,10 +17,10 @@ const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const phrases = [
-    "Unlock Your Potential",
-    "Ace Your Exams",
-    "Master Your Subjects",
-    "Learn Smarter",
+    "Ignite Your Mind",
+    "Conquer The Curriculum",
+    "Accelerate Growth",
+    "Future-Proof Skills",
   ];
 
   useEffect(() => {
@@ -65,11 +65,11 @@ const Hero = () => {
           <div className="space-y-8 animate-fade-in text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4 mt-7 animate-bounce-slow hover:bg-primary/20 transition-colors cursor-default">
               <Sparkles className="w-4 h-4 animate-spin-slow" />
-              <span>Revolutionize your study routine</span>
+              <span>The next evolution of learning</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight">
-              Organize Your Learning,{" "}
+              Illuminate Your Mind,{" "}
               <span
                 className="block min-h-[2.5em] md:min-h-[1.3em] text-glow bg-gradient-to-r 
                 from-primary via-secondary to-accent
@@ -84,10 +84,8 @@ const Hero = () => {
               className="text-lg md:text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0 leading-relaxed animate-fade-in"
               style={{ animationDelay: "0.2s" }}
             >
-              Your syllabus, sorted. Your prep, powered.{" "}
-              <br className="hidden md:block" />
-              Join thousands of students mastering their subjects with
-              StudyFlow.
+              Step into a workspace designed for clarity. <br className="hidden md:block" />
+              Lumina provides the structure you need to master complex topics effortlessly.
             </p>
 
             <div
@@ -97,9 +95,9 @@ const Hero = () => {
               <Link to="/select-course">
                 <Button
                   size="lg"
-                  className="cosmic-glow hover-glow text-lg px-8 h-14 rounded-full w-full sm:w-auto group transition-all duration-300 hover:scale-105 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 border-0"
+                  className="lumina-glow hover-glow text-lg px-8 h-14 rounded-full w-full sm:w-auto group transition-all duration-300 hover:scale-105 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 border-0"
                 >
-                  Start Learning Now
+                  Get Started
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -109,7 +107,7 @@ const Hero = () => {
                   size="lg"
                   className="text-lg px-8 h-14 rounded-full w-full sm:w-auto border-primary/20 hover:bg-primary/5 transition-all duration-300 hover:scale-105 backdrop-blur-sm"
                 >
-                  Explore Courses
+                  Browse Library
                 </Button>
               </Link>
             </div>

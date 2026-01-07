@@ -8,12 +8,12 @@ import {
 const FAQ = () => {
   const faqData = [
     {
-      question: "What is Studyflow?",
+      question: "What is Lumina?",
       answer:
-        "Studyflow is an educational platform providing notes, PYQs, assignments, PDFs, short learning videos, community guidance, internships, and skill-based learning opportunities for students.",
+        "Lumina is an educational platform providing notes, PYQs, assignments, PDFs, short learning videos, community guidance, internships, and skill-based learning opportunities for students.",
     },
     {
-      question: "Is StudyFlow free to use?",
+      question: "Is Lumina free to use?",
       answer:
         "Yes, many resources like basic notes and guidance are free. Some premium materials and courses may be paid.",
     },
@@ -30,22 +30,22 @@ const FAQ = () => {
     {
       question: "How can I request new notes or report an issue?",
       answer:
-        "You can contact us through 📧 Email:studyflowteams@gmail.com and 📱 Instagram: @studyflow.in",
+        "You can contact us through 📧 Email:Luminateams@gmail.com and 📱 Instagram: @Lumina.in",
     },
     {
-      question: "Will Studyflow launch an app?",
+      question: "Will Lumina launch an app?",
       answer:
-        "Yes, the Studyflow mobile app is under development and will launch soon.",
+        "Yes, the Lumina mobile app is under development and will launch soon.",
     },
     {
-      question: "Is my personal data safe with Studyflow?",
+      question: "Is my personal data safe with Lumina?",
       answer:
         "Yes, we do not sell or share your personal information. All user data is protected and used only to improve services.",
     },
     {
-      question: "Who are the founders of Studyflow?",
+      question: "Who are the founders of Lumina?",
       answer:
-        "Studyflow is founded by Abhay Kanojia (Founder & CEO) and supported by Riya (Content & Data Head) and Gaurav (Technical Lead/Web Developer).",
+        "Lumina is founded by Abhay Kanojia (Founder & CEO) and supported by Riya (Content & Data Head) and Gaurav (Technical Lead/Web Developer).",
     },
   ];
 

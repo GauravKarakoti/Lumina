@@ -79,9 +79,10 @@ const Header = () => {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Link to="/" className="flex items-center gap-2">
-                <img src="/Logo.PNG" alt="Logo" className="h-16 w-auto" />
-                {/* Changed: Added 'hidden sm:block' to hide text on mobile */}
-                <span className="text-2xl font-bold text-glow hidden sm:block">STUDYFLOW</span>
+                <img src="/Logo.PNG" alt="Lumina Logo" className="h-16 w-auto rounded-full aspect-square object-cover" />
+                <span className="text-2xl font-bold text-glow hidden sm:block tracking-wider">
+                  LUMINA
+                </span>
               </Link>
 
               <div className="flex items-center gap-4">
@@ -102,7 +103,7 @@ const Header = () => {
                     {isAdmin() && (
                       <Button
                         onClick={() => navigate("/admin")}
-                        className="cosmic-glow hover-glow"
+                        className="lumina-glow hover-glow" // changed from cosmic-glow
                       >
                         Admin
                       </Button>
@@ -198,7 +199,7 @@ const Header = () => {
                         <div className="flex flex-col gap-2">
                           <h4 className="font-semibold text-lg">Welcome aboard! 🎉</h4>
                           <p className="text-sm text-primary-foreground/90">
-                            Complete your profile here to get the most out of StudyFlow.
+                            Complete your profile here to get the most out of Lumina.
                           </p>
                           <Button 
                             variant="secondary" 
@@ -219,7 +220,7 @@ const Header = () => {
                 ) : (
                   <Button
                     onClick={() => navigate("/login")}
-                    className="cosmic-glow hover-glow"
+                    className="lumina-glow hover-glow" // changed from cosmic-glow
                   >
                     Login
                   </Button>

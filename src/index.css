@@ -4,91 +4,82 @@
 
 @layer base {
   :root {
-    /* --background: 270 30% 98%;
-    --foreground: 270 60% 10%;
+    /* DEFAULT THEME (Light - Clean & Crisp) */
+    --background: 195 30% 98%; /* Ice Blue White */
+    --foreground: 220 40% 10%; /* Deep Navy Text */
 
     --card: 0 0% 100%;
-    --card-foreground: 270 60% 15%;
+    --card-foreground: 220 40% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 270 60% 15%;
+    --popover-foreground: 220 40% 15%;
 
-    --primary: 270 90% 52%; 
+    --primary: 190 90% 45%; /* Ocean Cyan */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 310 85% 60%; 
+    --secondary: 210 90% 60%; /* Sky Blue */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 270 20% 96%;
-    --muted-foreground: 270 10% 45%;
+    --muted: 200 20% 96%;
+    --muted-foreground: 215 20% 45%;
 
-    --accent: 250 85% 65%; 
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%; */
-
-    --border: 270 15% 92%; /* Subtle borders */
-    --input: 270 15% 92%;
-    --ring: 270 90% 52%; /* Matches primary */
-
-    --radius: 1rem;
-
-    /* --gradient-start: 270 90% 52%;
-    --gradient-mid: 310 85% 60%;
-    --gradient-end: 250 85% 65%;
-    
-    --cosmic-glow: 270 90% 52%; 
-    --cosmic-deep: 270 30% 98%;
-    --cosmic-mid: 0 0% 100%;
-
-    --glow-strength: 0.15;
-    --glow-shadow: 25px; */
-    
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* .dark { */
-  :root {
-    /* Spiced Up Cosmic Dark Theme */
-    --background: 265 60% 8%;  /* Deep Void Purple */
-    --foreground: 280 20% 95%;
-
-    --card: 265 50% 12%;
-    --card-foreground: 280 20% 95%;
-
-    --popover: 265 50% 12%;
-    --popover-foreground: 280 20% 95%;
-
-    --primary: 265 90% 65%; /* Neon Purple */
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 310 90% 60%; /* Hot Pink */
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 265 40% 20%;
-    --muted-foreground: 280 20% 70%;
-
-    --accent: 220 90% 60%; /* Electric Blue */
+    --accent: 170 80% 50%; /* Mint Green */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 265 40% 25%;
-    --input: 265 40% 20%;
-    --ring: 265 90% 65%;
+    --border: 200 20% 90%;
+    --input: 200 20% 90%;
+    --ring: 190 90% 45%;
+
+    --radius: 0.75rem; /* Slightly sharper corners */
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* DARK THEME (The Main Look) */
+  .dark, :root { 
+    /* Deep Ocean Theme */
+    --background: 222 47% 11%; /* Deep Navy */
+    --foreground: 210 40% 98%;
+
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 186 100% 50%; /* Neon Cyan */
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 250 100% 70%; /* Electric Violet (Contrast) */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217 33% 25%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 320 90% 60%; /* Hot Magenta (Pop color) */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 186 100% 50%;
 
     --gradient-start: var(--primary);
     --gradient-mid: var(--secondary);
     --gradient-end: var(--accent);
 
-    --cosmic-glow: 310 90% 60%;
-    --cosmic-deep: 265 60% 8%;
-    --cosmic-mid: 265 50% 12%;
+    /* Renaming cosmic variables to 'lumina' variables */
+    --lumina-glow: 186 100% 50%; 
+    --lumina-deep: 222 47% 11%;
+    --lumina-mid: 217 33% 17%;
 
-    --glow-strength: 0.4;
-    --glow-shadow: 50px;
+    --glow-strength: 0.5;
+    --glow-shadow: 40px;
   }
 }
 
@@ -99,58 +90,33 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Updated gradient to use variables instead of hardcoded colors */
-    background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--card)));
+    background: linear-gradient(180deg, hsl(var(--background)), hsl(var(--lumina-mid)));
     min-height: 100vh;
   }
 }
 
 @layer utilities {
-  .cosmic-glow {
+  .lumina-glow {
   box-shadow: 
-    0 0 var(--glow-shadow) hsl(var(--cosmic-glow) / var(--glow-strength)),
-    0 0 calc(var(--glow-shadow) * 2) hsl(var(--primary) / calc(var(--glow-strength) - 0.02));
+    0 0 var(--glow-shadow) hsl(var(--lumina-glow) / var(--glow-strength)),
+    0 0 calc(var(--glow-shadow) * 2) hsl(var(--primary) / calc(var(--glow-strength) - 0.1));
   }
 
   .prose {
     color: hsl(var(--foreground) / 0.9);
   }
   .prose h1, .prose h2, .prose h3 {
-    color: hsl(var(--cosmic-glow));
-  }
-  .prose strong {
-    color: hsl(var(--foreground));
-  }
-  .prose ul > li::before {
-    background-color: hsl(var(--primary));
-  }
-  .prose ol > li::before {
-    color: hsl(var(--primary));
-  }
-
-  .no-download {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-  }
-  .no-download::selection {
-    background: transparent;
-  }
-  .no-download::-moz-selection {
-    background: transparent;
+    color: hsl(var(--lumina-glow));
   }
   
-  .cosmic-card {
-    /* [!code change] Switched to variables: uses --card (top) and --secondary (bottom) */
-    background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(var(--secondary) / 0.4));
-    backdrop-filter: blur(10px);
+  .lumina-card {
+    background: linear-gradient(135deg, hsl(var(--card) / 0.9), hsl(var(--background) / 0.8));
+    backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--border));
   }
   
   .text-glow {
-    /* [!code change] Switched to variables: uses --cosmic-glow */
-    text-shadow: 0 0 20px hsl(var(--cosmic-glow) / 0.3);
+    text-shadow: 0 0 25px hsl(var(--lumina-glow) / 0.4);
   }
   
   .hover-glow {
@@ -158,12 +124,12 @@
   }
   
   .hover-glow:hover {
-    /* [!code change] Switched to variables: uses --primary */
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
-    transform: translateY(-2px);
+    box-shadow: 0 0 35px hsl(var(--primary) / 0.5);
+    transform: translateY(-3px);
   }
 }
 
+/* Retain PDF styles... */
 .react-pdf__Page__canvas {
   pointer-events: auto !important;
   max-width: 100% !important;
@@ -171,12 +137,5 @@
   display: block;
   margin: 0 auto;
 }
-
-.react-pdf__Page {
-  pointer-events: auto !important;
-}
-
-/* New: keep scroll inside the viewer (prevents scroll chaining) */
-.pdf-fullscreen-scroll {
-  overscroll-behavior: contain;
-}
+.react-pdf__Page { pointer-events: auto !important; }
+.pdf-fullscreen-scroll { overscroll-behavior: contain; }

@@ -14,13 +14,13 @@ const features = [
   {
     icon: GraduationCap,
     title: "Tutorial",
-    description: "How to Use StudyFlow",
+    description: "How to Use Lumina",
     detail: "Resource integration",
     extra: "Organize by subject",
   },
   {
     icon: Brain,
-    title: "Learn with StudyFlow",
+    title: "Learn with Lumina",
     description: "Flashcards & quizzes",
     detail: "Spaced repetition",
     extra: "Learn and Test yourself",
@@ -44,8 +44,7 @@ const Features = () => {
           {features.map((feature, index) => {
             const Icon = feature.icon;
 
-            // Check if this is the "Learn with StudyFlow" card
-            if (feature.title === "Learn with StudyFlow") {
+            if (feature.title === "Learn with Lumina") {
               return (
                 <Card
                   key={index}
@@ -108,21 +107,20 @@ const Features = () => {
                     <DialogHeader>
                       <DialogTitle>Tutorial Video</DialogTitle>
                       <DialogDescription>
-                        Watch our guide on how to make the most of StudyFlow.
+                        Watch our guide on how to make the most of Lumina.
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="mt-4">
+                    {/* <div className="mt-4">
                       <a
                         href="https://youtu.be/cazOOgxosh8?si=THbXcFuHw0UrTSwP"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="group block space-y-4"
                       >
-                        {/* Video Thumbnail with Play Button Overlay */}
                         <div className="relative aspect-video rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/50 transition-all shadow-lg">
                           <img
                             src="https://img.youtube.com/vi/cazOOgxosh8/maxresdefault.jpg"
-                            alt="StudyFlow Tutorial"
+                            alt="Lumina Tutorial"
                             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                           />
                           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 flex items-center justify-center transition-colors">
@@ -137,13 +135,12 @@ const Features = () => {
                           </div>
                         </div>
 
-                        {/* Video Caption */}
                         <p className="text-lg font-medium leading-snug text-foreground group-hover:text-primary transition-colors">
-                          StudyFlow Website Is LIVE! 🚀 | Full Tutorial for
+                          Lumina Website Is LIVE! 🚀 | Full Tutorial for
                           College Students (Must Watch!) | Notes 📝
                         </p>
                       </a>
-                    </div>
+                    </div> */}
                   </DialogContent>
                 </Dialog>
               );

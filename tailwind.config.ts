@@ -54,6 +54,11 @@ export default {
           accent: "hsl(var(--cosmic-accent))",
           secondary: "hsl(var(--cosmic-secondary))",
         },
+        lumina: {
+          glow: "hsl(var(--lumina-glow))",
+          deep: "hsl(var(--lumina-deep))",
+          mid: "hsl(var(--lumina-mid))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

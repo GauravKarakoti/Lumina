@@ -11,7 +11,7 @@ const Loading = () => {
             <Loader2 className="w-12 h-12 text-primary animate-spin" />
           </div>
           <p className="text-lg font-medium bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary animate-pulse">
-            Loading StudyFlow...
+            Loading Lumina...
           </p>
         </div>
       </div>

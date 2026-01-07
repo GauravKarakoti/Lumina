@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
-import Team from "@/components/Team";
 import Footer from "@/components/Footer";
 import FAQ from "@/components/FAQ";
 import { Users } from "lucide-react"; // Make sure to install lucide-react if not present, or use an existing icon
@@ -22,7 +21,6 @@ const Index = () => {
       <Header />
       <Hero />
       <Features />
-      <Team />
 
       {/* --- New User Count Section --- */}
       <section className="pb-10 relative overflow-hidden">

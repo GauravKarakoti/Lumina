@@ -131,7 +131,7 @@ model Unit {
   title       String
   description String
   order       Int
-  courseId    String    // Links to StudyFlow's existing Course ID
+  courseId    String    
   course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons     Lesson[]
 }

@@ -15,7 +15,7 @@ const sendEmail = async (to: string, subject: string, htmlContent: string) => {
   sendSmtpEmail.htmlContent = htmlContent;
   // This MUST match the email you verified in Brevo
   sendSmtpEmail.sender = { 
-    name: 'StudyFlow', 
+    name: 'Lumina', 
     email: process.env.SENDER_EMAIL 
   };
   sendSmtpEmail.to = [{ email: to }];

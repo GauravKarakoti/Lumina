@@ -22,7 +22,7 @@ export const initializeWhatsApp = async () => {
         version,
         logger: pino({ level: 'silent' }), 
         auth: state,
-        browser: ['StudyFlow', 'Chrome', '10.0'],
+        browser: ['Lumina', 'Chrome', '10.0'],
         generateHighQualityLinkPreview: true,
     });
 

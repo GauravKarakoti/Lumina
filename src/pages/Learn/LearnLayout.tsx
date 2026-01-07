@@ -17,7 +17,7 @@ export const LearnLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
       <div className="w-20 lg:w-64 border-r border-border flex flex-col p-4 gap-4">
         <Link to="/">
-            <div className="font-bold text-2xl text-cosmic-glow hidden lg:block mb-6">StudyFlow Learn</div>
+            <div className="font-bold text-2xl text-cosmic-glow hidden lg:block mb-6">Lumina Learn</div>
         </Link>
         {sidebarItems.map((item) => (
           <Link

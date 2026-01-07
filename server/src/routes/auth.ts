@@ -48,7 +48,7 @@ router.post('/signup', async (req, res) => {
       },
     })
 
-    await sendNotification(user.id, `Welcome to StudyFlow, ${user.name || 'Student'}! 🚀`);
+    await sendNotification(user.id, `Welcome to Lumina, ${user.name || 'Student'}! 🚀`);
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
@@ -148,7 +148,7 @@ router.post('/google', async (req, res) => {
           // No password needed
         },
       });
-      await sendNotification(user.id, `Welcome to StudyFlow, ${user.name || 'Student'}! 🚀`);
+      await sendNotification(user.id, `Welcome to Lumina, ${user.name || 'Student'}! 🚀`);
     } else {
         // Optional: Update avatar if it's currently null
         if (!user.avatarUrl) {
@@ -236,7 +236,7 @@ router.post('/send-otp', async (req, res) => {
     });
     console.log(`Generated OTP ${code} for ${phoneNumber}`);
 
-    await sendWhatsappMessage(phoneNumber, `Your StudyFlow Login Code is: ${code}`);
+    await sendWhatsappMessage(phoneNumber, `Your Lumina Login Code is: ${code}`);
     console.log(`Sent OTP ${code} to ${phoneNumber} via WhatsApp`);
     res.json({ message: 'OTP sent via WhatsApp' });
   } catch (error) {
